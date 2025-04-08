@@ -1,0 +1,7 @@
+redis==5.2.1
+tqdm
+from fastapi import FastAPI
+import ollama
+from hashlib import md5
+from pypdf import PdfReader
+import numpy as np
