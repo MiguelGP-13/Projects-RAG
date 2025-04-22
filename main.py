@@ -1,5 +1,6 @@
 import redis
 import os
+import warnings
 import redis.exceptions
 from tqdm import tqdm
 from flask import Flask, jsonify, request
@@ -17,7 +18,7 @@ DB_PASS = os.getenv('DB_PASSWORD')
 MODELO_EMBEDDING = os.getenv('EMBEDDINGS')
 MODELO = os.getenv('MODELO')
 DIMENSION = os.getenv('DIMENSION')
-CHUNK_SIZE = os.getenv('CHUNK_SIZE')
+CHUNK_SIZE = int(os.getenv('CHUNK_SIZE'))
 CONTEXT_SIZE = os.getenv('CONTEXT_SIZE')
 DOCUMENT_FOLDER = os.getenv('DOCUMENT_FOLDER')
 if modo=='Externo':
@@ -26,7 +27,7 @@ if modo=='Externo':
 
 
 ## Create conexion to db and create index to search embeddings
-REDIS_DB = redis.Redis(host='localhost', port=6379, password=DB_PASS)
+REDIS_DB = redis.Redis(host='localhost', port=6379)#, password=DB_PASS)
 INDICE_REDIS = 'knn'
 if INDICE_REDIS.encode() not in REDIS_DB.execute_command("FT._LIST"):
     REDIS_DB.execute_command(
@@ -49,12 +50,18 @@ app = Flask(__name__)
 
 # Load all documents embedded to the database
 @app.route("/update", methods=['POST'])
-def update_redis(pdfs: list = None): # list with pdf paths
-    if not pdfs:
-        pdfs  = [doc for doc in os.listdir('documentos') if doc.endswith('.pdf')]
+def update_redis(): # list with pdf paths
+    message = request.json 
+    if "pdfs_array" in message.keys():
+        pdfs = message["pdfs_array"]
+    else:
+        pdfs  = [doc for doc in os.listdir(DOCUMENT_FOLDER) if doc.endswith('.pdf')]
+
+    n_chunks = 0
     for pdf in tqdm(pdfs, desc="Processing PDFs", unit="file"):
-        create_embeddings_pdf(pdf, CHUNK_SIZE, MODELO_EMBEDDING, REDIS_DB)
-    print(pdfs, 'actualizados')
+        n_chunks += create_embeddings_pdf(pdf, CHUNK_SIZE, MODELO_EMBEDDING, REDIS_DB)
+    
+    return {'success':True, "pdfs_created":pdfs, "number_of_chunks": f"{n_chunks} chunks were created"}
 
 @app.route("/query", methods=['POST'])
 def query_database():
@@ -66,23 +73,59 @@ def query_database():
 
 @app.route('/add_doc', methods=['POST'])
 def add_file():
-
-    ### Bien, pero añadir control de si ya existe el archivo en la carpeta y devolver error
-
-    message = request.json
-    print(message, type(message))
+    ## Retrieve post data and flags
+    message = request.json # Get file path
+    if 'file_path' not in message.keys():
+        return {'success':False,"error_code":100, 'description':f"The compulsary value \"file_path\" was not found in the json."}
     file_path = message['file_path']
-    name = file_path.split('/')[-1]
-    print(file_path, name, DOCUMENT_FOLDER)
-    with open(file_path,'rb') as start:
-        with open (DOCUMENT_FOLDER+'/'+ name, 'wb') as end:
-            end.write(start.read())
-    return {'success':True}
+    name = file_path.split('/')[-1] # Get file name
+
+    force = False
+    if "force" in message.keys():
+        if force == True or force== False:
+            warnings.warn_explicit('force value must be True or False, if not the result might be unexpected')
+        force = message['force']
+
+    if "rename" in message.keys():
+        name  = message['rename']
+    
+    # Check the new file won't destroy an older one
+    if name in os.listdir(DOCUMENT_FOLDER) and not force:
+        return {'success':False,"error_code":101, 'description':f"There is alredy a file named {name}.\n \
+                Add the value \"rename\" in the request json to save with another name or the \"force\" value to rewrite the document data."}
+    else:
+        # Save the file
+        try:
+            with open(file_path,'rb') as start:
+                with open (DOCUMENT_FOLDER+'/'+ name, 'wb') as end:
+                    end.write(start.read())
+            return {'success':True, "path":DOCUMENT_FOLDER+'/'+ name}
+        except FileNotFoundError:
+            return {'success':False, "error_code":102, 'description':f"The file {file_path} doesn't exists."}
+        except Exception as e:
+            return {'success':False, "error_code":0, 'description':f"TUnexpected error: {e}"}
             
 
 @app.route('/remove_doc', methods=['POST'])
-def delete_doc(file_name):
-    os.remove(DOCUMENT_FOLDER+'/' + file_name)
+def delete_doc():
+    message = request.json # Get file name
+    if 'file_name' not in message.keys():
+        return {'success':False,"error_code":100, 'description':f"The compulsary value \"file_name\" was not found in the json."}
+    file_name = message['file_name']
+
+    clear = 0 # Number of chunks deleted
+    if "clear_database" in message.keys():
+        clear = message["clear_database"] # clear= True (must clean db)
+        
+    try:
+        os.remove(DOCUMENT_FOLDER+'/' + file_name)
+        if clear:
+            clear = delete_embeddings(file_name) # clear= Number of chunks deleted
+    except FileNotFoundError:
+            return {'success':False, "error_code":102, 'description':f"The is no file named {file_name}."}
+    except Exception as e:
+            return {'success':False, "error_code":0, 'description':f"TUnexpected error: {e}"}
+    return {'success':True, "description":f" The file {file_name} was deleted", 'database_cleared':f"{clear} chunks deleted"} 
 
 if __name__ == '__main__':
     app.run(host='127.0.0.3', port=1234)

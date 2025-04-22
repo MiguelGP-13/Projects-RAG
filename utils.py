@@ -30,6 +30,21 @@ def alredy_stored(indice, hash, redis):
     else:
         return False
 
+def delete_embeddings(file_name, redis):
+    '''
+    file_name: str = File whose chunks are going to be deleted
+    redis: Redis = Connection to the Redis database
+    
+    return: int = Number of chunks deleted
+
+    Deletes all embeddings created with that file.
+    '''
+    keys = redis.keys(f"{file_name}:*")
+
+    # Borra todas esas claves
+    if keys:
+        redis.delete(*keys)
+    return len(keys)
 
 def create_embeddings_pag(texto, chunk_size, embedder, redis, nombre, pagina):
     '''
@@ -46,16 +61,17 @@ def create_embeddings_pag(texto, chunk_size, embedder, redis, nombre, pagina):
     Creates embeddings and saves them in the Redis vector database.
     '''
     idx = f"documentos:{nombre}:{pagina}:"
-    i = 0
+    chunk_nuevos = []
     for j in range(1, len(texto), chunk_size):
-        i += 1
-        indice = idx+str(i)
         chunk = texto[j:j + chunk_size]
         hash = md5(chunk.encode(), usedforsecurity= False).hexdigest()
+        indice = idx+str(hash)
         if not alredy_stored(indice, hash, redis):
-            embedding = ollama.embed(model=embedder, input=chunk).embeddings[0]
-            redis.hset(indice, mapping={"embedding":to_blob(np.array(embedding)),"hash":hash, "referencia":chunk})
-    return i
+            chunk_nuevos.append((indice, chunk, hash))
+    embeddings = ollama.embed(model=embedder, input=[i[1] for i in chunk_nuevos]).embeddings
+    for i, embedding in enumerate(embeddings):
+        redis.hset(chunk_nuevos[i][0], mapping={"embedding":to_blob(np.array(embedding)),"hash":chunk_nuevos[i][2], "referencia":chunk_nuevos[i][1]})
+    return i + 1
 
 def create_embeddings_pdf(ruta_pdf: str, chunk_size, embedder, redis):
     '''
@@ -72,6 +88,7 @@ def create_embeddings_pdf(ruta_pdf: str, chunk_size, embedder, redis):
     for idx, page in enumerate(reader.pages):
         chunks += create_embeddings_pag(page.extract_text(),chunk_size, embedder, redis, nombre, idx) # Crea embeddings y devuelve numero de chunks
     print(f"¡{chunks} creados!")
+    return chunks
 
 
 def query(prompt, modelo, embedder, redis, indice, N= 3):
