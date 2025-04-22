@@ -6,6 +6,11 @@ from flask import Flask, jsonify, request
 import json
 from utils import *
 
+from dotenv import load_dotenv
+
+load_dotenv('.env.settings')  # carga el archivo con tus variables
+load_dotenv('.env.secrets')
+
 ## Load enviroment variables
 modo = os.getenv('MODO')
 DB_PASS = os.getenv('DB_PASSWORD')
@@ -14,6 +19,7 @@ MODELO = os.getenv('MODELO')
 DIMENSION = os.getenv('DIMENSION')
 CHUNK_SIZE = os.getenv('CHUNK_SIZE')
 CONTEXT_SIZE = os.getenv('CONTEXT_SIZE')
+DOCUMENT_FOLDER = os.getenv('DOCUMENT_FOLDER')
 if modo=='Externo':
     API_KEY = os.getenv('API_MODELO')
     API_EMBEDDING = os.getenv('API_EMBEDDINGS')
@@ -43,13 +49,14 @@ app = Flask(__name__)
 
 # Load all documents embedded to the database
 @app.route("/update", methods=['POST'])
-def initialize_redis():
-    pdfs  = [doc for doc in os.listdir('documentos') if doc.endswith('.pdf')]
+def update_redis(pdfs: list = None): # list with pdf paths
+    if not pdfs:
+        pdfs  = [doc for doc in os.listdir('documentos') if doc.endswith('.pdf')]
     for pdf in tqdm(pdfs, desc="Processing PDFs", unit="file"):
         create_embeddings_pdf(pdf, CHUNK_SIZE, MODELO_EMBEDDING, REDIS_DB)
+    print(pdfs, 'actualizados')
 
-
-@app.route("/query", methods=['GET'])
+@app.route("/query", methods=['POST'])
 def query_database():
     message = json.dumps(request.json)
     print(message)
@@ -59,18 +66,23 @@ def query_database():
 
 @app.route('/add_doc', methods=['POST'])
 def add_file():
-    message = json.dumps(request.json)
-    print(message)
-    prompt = message['file_path']
+
+    ### Bien, pero añadir control de si ya existe el archivo en la carpeta y devolver error
+
+    message = request.json
+    print(message, type(message))
+    file_path = message['file_path']
     name = file_path.split('/')[-1]
-    with open(file_path,'r') as start:
-        with open ('/documentos'+name, 'w') as end:
+    print(file_path, name, DOCUMENT_FOLDER)
+    with open(file_path,'rb') as start:
+        with open (DOCUMENT_FOLDER+'/'+ name, 'wb') as end:
             end.write(start.read())
+    return {'success':True}
             
 
-@app.route('/delete_doc', methods=['POST'])
+@app.route('/remove_doc', methods=['POST'])
 def delete_doc(file_name):
-    os.remove('/documentos'+file_name)
+    os.remove(DOCUMENT_FOLDER+'/' + file_name)
 
-# if __name__ == '__main__':
-#     app.run(host='127.0.0.3', port=8000)
+if __name__ == '__main__':
+    app.run(host='127.0.0.3', port=1234)
