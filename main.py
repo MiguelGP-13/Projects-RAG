@@ -27,7 +27,7 @@ if modo=='Externo':
 
 
 ## Create conexion to db and create index to search embeddings
-REDIS_DB = redis.Redis(host='localhost', port=6379)#, password=DB_PASS)
+REDIS_DB = redis.Redis(host='localhost', port=6379, password=DB_PASS)
 INDICE_REDIS = 'knn'
 if INDICE_REDIS.encode() not in REDIS_DB.execute_command("FT._LIST"):
     REDIS_DB.execute_command(
@@ -61,15 +61,19 @@ def update_redis(): # list with pdf paths
     for pdf in tqdm(pdfs, desc="Processing PDFs", unit="file"):
         n_chunks += create_embeddings_pdf(pdf, CHUNK_SIZE, MODELO_EMBEDDING, REDIS_DB)
     
-    return {'success':True, "pdfs_created":pdfs, "number_of_chunks": f"{n_chunks} chunks were created"}
+    return {'success':True, "pdfs_created":pdfs, "number_of_chunks": f"{n_chunks} new chunks were created"}
 
 @app.route("/query", methods=['POST'])
 def query_database():
-    message = json.dumps(request.json)
-    print(message)
+    message = request.json
+    if 'prompt' not in message.keys():
+        return {'success':False,"error_code":100, 'description':f"The compulsary value \"prompt\" was not found in the json."}
     prompt = message['prompt']
-    answer, context, context_text = query(prompt, MODELO, MODELO_EMBEDDING, REDIS_DB, INDICE_REDIS, CONTEXT_SIZE)
-    return {'answer':answer.content, 'references':context, 'reference_text':context_text}
+    try:
+        answer, context, context_text = query(prompt, MODELO, MODELO_EMBEDDING, REDIS_DB, INDICE_REDIS, CONTEXT_SIZE)
+        return {'answer':answer.content, 'references':context, 'reference_text':context_text}
+    except Exception as e:
+        return {'success':False, "error_code":0, 'description':f"TUnexpected error: {e}"}
 
 @app.route('/add_doc', methods=['POST'])
 def add_file():
@@ -120,7 +124,7 @@ def delete_doc():
     try:
         os.remove(DOCUMENT_FOLDER+'/' + file_name)
         if clear:
-            clear = delete_embeddings(file_name) # clear= Number of chunks deleted
+            clear = delete_embeddings(file_name, REDIS_DB) # clear= Number of chunks deleted
     except FileNotFoundError:
             return {'success':False, "error_code":102, 'description':f"The is no file named {file_name}."}
     except Exception as e:

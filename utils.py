@@ -24,9 +24,9 @@ def alredy_stored(indice, hash, redis):
     Checks if a chunk has already been stored in the database. If it has, it checks if the content has changed.
     '''
     guardado=redis.hget(indice, "hash")
-    print(guardado, guardado == hash)
+    print(guardado.decode(), guardado.decode() == hash, hash, type(hash), type(guardado.decode()))
     if guardado:
-        return guardado == hash
+        return guardado.decode() == hash
     else:
         return False
 
@@ -39,8 +39,10 @@ def delete_embeddings(file_name, redis):
 
     Deletes all embeddings created with that file.
     '''
-    keys = redis.keys(f"{file_name}:*")
-
+    file_name = file_name.split('.')[0].split('/')[-1]
+    keys = redis.keys(f"documentos:{file_name}:*")
+    print(f"documentos:{file_name}:*")
+    print(keys)
     # Borra todas esas claves
     if keys:
         redis.delete(*keys)
@@ -68,9 +70,13 @@ def create_embeddings_pag(texto, chunk_size, embedder, redis, nombre, pagina):
         indice = idx+str(hash)
         if not alredy_stored(indice, hash, redis):
             chunk_nuevos.append((indice, chunk, hash))
-    embeddings = ollama.embed(model=embedder, input=[i[1] for i in chunk_nuevos]).embeddings
-    for i, embedding in enumerate(embeddings):
-        redis.hset(chunk_nuevos[i][0], mapping={"embedding":to_blob(np.array(embedding)),"hash":chunk_nuevos[i][2], "referencia":chunk_nuevos[i][1]})
+    print('Creating embeddigns', len(chunk_nuevos))
+    i = -1
+    if len(chunk_nuevos) > 0: # Don't call model if we don't have chunks to encode
+        embeddings = ollama.embed(model=embedder, input=[i[1] for i in chunk_nuevos]).embeddings
+        print('Saving')
+        for i, embedding in enumerate(embeddings):
+            redis.hset(chunk_nuevos[i][0], mapping={"embedding":to_blob(np.array(embedding)),"hash":chunk_nuevos[i][2], "referencia":chunk_nuevos[i][1]})
     return i + 1
 
 def create_embeddings_pdf(ruta_pdf: str, chunk_size, embedder, redis):
