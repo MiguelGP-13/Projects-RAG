@@ -1,0 +1,63 @@
+body {
+    /* padding-bottom: 4000px; */
+}
+
+.header {
+    background-color: rgb(243,248,254);
+    display: flex;
+    justify-content: space-between; 
+    align-items: center; 
+    padding: 10px 5px;
+    position: fixed;
+    width: 100%;
+    top:0;
+    left:0;
+}
+
+.logo {
+    width: 40px;
+    height: auto;
+    object-fit:contain;
+}
+
+.title-left {
+    display: flex;
+}
+
+.files-button {
+    display: flex;
+    background-color: black;
+    color: white;
+    width: 50px;
+    padding-right: 10px;
+    border-top-left-radius: 15px;
+    border-bottom-left-radius: 15px;
+    align-items: center;
+    justify-content: center; /* Centrar elementos */
+    position: relative;
+}
+
+.files-text {
+    visibility: hidden; /* Ocultar completamente el texto */
+    width: 0; /* No ocupar espacio */
+    overflow: hidden;
+    transition: width 0.3s ease-in-out; /* Animación fluida */
+    margin-right: 15px;
+}
+
+.files-arrow {
+    text-align: center;
+    transition: margin-left 0.3s ease-in-out; /* Mover con animación */
+}
+
+.files-button:hover {
+    width: 85px;
+    justify-content: flex-start; /* Cambiar alineación */
+    padding-left: 15px;
+    cursor: pointer;
+}
+
+.files-button:hover .files-text {
+    visibility: visible;
+    width: auto; /* Expandir el texto */
+}

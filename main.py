@@ -131,5 +131,7 @@ def delete_doc():
             return {'success':False, "error_code":0, 'description':f"TUnexpected error: {e}"}
     return {'success':True, "description":f" The file {file_name} was deleted", 'database_cleared':f"{clear} chunks deleted"} 
 
+### ADD MAYBE A CALL TO SEND DOCUMENTS
+
 if __name__ == '__main__':
     app.run(host='127.0.0.3', port=1234)

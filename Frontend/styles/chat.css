@@ -1,0 +1,120 @@
+
+.chat-with-ai {
+	margin: 80px 20px;
+	max-width: 1600px;
+}
+.chat-space {
+	background-color: red;
+	border: 1px solid #e5e5ea;
+	border-radius: 0.25rem;
+	display: flex;
+	flex-direction: column;
+	/* font-family: "SanFrancisco"; */
+	font-size: 1.25rem;
+	margin: 0 auto 1rem;
+	padding: 0.5rem 1.5rem;
+	margin-bottom: 0px;
+}
+
+.chat-space p {
+	border-radius: 1.15rem;
+	line-height: 1.25;
+	max-width: 75%;
+	padding: 0.5rem .875rem;
+	position: relative;
+	word-wrap: break-word;
+}
+
+.chat-space p::before,
+.chat-space p::after {
+	bottom: -0.1rem;
+	content: "";
+	height: 1rem;
+	position: absolute;
+}
+
+p.from-user {
+	align-self: flex-end;
+	background-color: #248bf5;
+	color: #fff; 
+	border-bottom-right-radius: 2px;
+}
+
+p.from-user::before {
+	border-bottom-left-radius: 0.8rem 0.7rem;
+	border-right: 1rem solid #248bf5;
+	right: -0.35rem;
+	transform: translate(0, -0.1rem);
+}
+
+p.from-user::after {
+	background-color: red;
+	border-bottom-left-radius: 0.5rem;
+	right: -40px;
+	transform:translate(-30px, -2px);
+	width: 10px;
+}
+
+p.from-ai {
+	align-items: flex-start;
+	background-color: #e5e5ea;
+	color: #000;
+	border-bottom-left-radius: 2px;
+}
+
+p.from-ai:before {
+	border-bottom-right-radius: 0.8rem 0.7rem;
+	border-left: 1rem solid #e5e5ea;
+	left: -0.35rem;
+	transform: translate(0, -0.1rem);
+}
+
+p.from-ai::after {
+	background-color: red;
+	border-bottom-right-radius: 0.5rem;
+	left: 20px;
+	transform: translate(-30px, -2px);
+	width: 10px;
+}
+
+.text-container-ai {
+	display: flex;
+	gap: 10px;
+	align-items:end;
+	justify-content: left;
+}
+
+.text-container-user {
+	display: flex;
+	gap: 10px;
+	align-items:end;
+	justify-content: right;
+}
+
+.logo-ai {
+	width: 40px;
+	height: auto;
+	object-fit:contain;
+	margin-bottom: 13px;
+}
+
+
+.input-prompt {
+	display: flex;
+	width:100%;
+	background-color: greenyellow;
+	margin-top: 0px;
+	align-items: center;
+	justify-content: space-evenly;
+}
+
+.input {
+	width: 90%;
+	height:30px;
+	padding-left: 5px;
+}
+
+.send-button {
+	height:30px;
+	cursor: pointer;
+}
