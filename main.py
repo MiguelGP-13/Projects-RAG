@@ -13,17 +13,20 @@ load_dotenv('.env.settings')  # carga el archivo con tus variables
 load_dotenv('.env.secrets')
 
 ## Load enviroment variables
-modo = os.getenv('MODO')
+mode = os.getenv('MODE')
 DB_PASS = os.getenv('DB_PASSWORD')
-MODELO_EMBEDDING = os.getenv('EMBEDDINGS')
-MODELO = os.getenv('MODELO')
+MODEL_EMBEDDING = os.getenv('EMBEDDINGS')
+MODEL = os.getenv('MODEL')
 DIMENSION = os.getenv('DIMENSION')
 CHUNK_SIZE = int(os.getenv('CHUNK_SIZE'))
 CONTEXT_SIZE = os.getenv('CONTEXT_SIZE')
 DOCUMENT_FOLDER = os.getenv('DOCUMENT_FOLDER')
-if modo=='Externo':
-    API_KEY = os.getenv('API_MODELO')
+if mode=='Externo':
+    API_KEY = os.getenv('API_MODEL')
     API_EMBEDDING = os.getenv('API_EMBEDDINGS')
+if mode == 'Mistral':
+    API_KEY = os.getenv('API_MODEL')
+    API_EMBEDDING = os.getenv('API_MODEL')
 
 
 ## Create conexion to db and create index to search embeddings
@@ -59,7 +62,7 @@ def update_redis(): # list with pdf paths
 
     n_chunks = 0
     for pdf in tqdm(pdfs, desc="Processing PDFs", unit="file"):
-        n_chunks += create_embeddings_pdf(pdf, CHUNK_SIZE, MODELO_EMBEDDING, REDIS_DB)
+        n_chunks += create_embeddings_pdf(pdf, CHUNK_SIZE, MODEL_EMBEDDING, REDIS_DB)
     
     return {'success':True, "pdfs_created":pdfs, "number_of_chunks": f"{n_chunks} new chunks were created"}
 
@@ -70,7 +73,7 @@ def query_database():
         return {'success':False,"error_code":100, 'description':f"The compulsary value \"prompt\" was not found in the json."}
     prompt = message['prompt']
     try:
-        answer, context, context_text = query(prompt, MODELO, MODELO_EMBEDDING, REDIS_DB, INDICE_REDIS, CONTEXT_SIZE)
+        answer, context, context_text = query(prompt, MODEL, MODEL_EMBEDDING, REDIS_DB, INDICE_REDIS, CONTEXT_SIZE)
         return {'answer':answer.content, 'references':context, 'reference_text':context_text}
     except Exception as e:
         return {'success':False, "error_code":0, 'description':f"TUnexpected error: {e}"}

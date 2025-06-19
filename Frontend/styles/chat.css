@@ -1,20 +1,27 @@
-
 .chat-with-ai {
-	margin: 80px 20px;
-	max-width: 1600px;
+	background-color: white;
+	flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 80px 20px 20px; /* Top space for header, bottom for future footer */
+    max-width: 1600px;
+    width: 100%;
+    box-sizing: border-box;
+    margin: 0 auto;
 }
 .chat-space {
-	background-color: red;
-	border: 1px solid #e5e5ea;
-	border-radius: 0.25rem;
-	display: flex;
-	flex-direction: column;
-	/* font-family: "SanFrancisco"; */
-	font-size: 1.25rem;
-	margin: 0 auto 1rem;
-	padding: 0.5rem 1.5rem;
-	margin-bottom: 0px;
+    flex: 1;
+    overflow-y: auto;
+    background-color: red;
+    border: 1px solid #e5e5ea;
+    border-radius: 0.25rem;
+    display: flex;
+    flex-direction: column;
+    font-size: 1.25rem;
+    padding: 0.5rem 1.5rem;
+    margin-bottom: 0px;
 }
+
 
 .chat-space p {
 	border-radius: 1.15rem;
