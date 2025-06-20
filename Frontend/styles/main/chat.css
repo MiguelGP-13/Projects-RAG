@@ -1,20 +1,20 @@
 .chat-with-ai {
-	background-color: white;
+    background-color: #a094a9;
 	flex: 1;
     display: flex;
     flex-direction: column;
-    padding: 80px 20px 20px; /* Top space for header, bottom for future footer */
-    max-width: 1600px;
+    padding: 95px 20px 20px; /* Top space for header, bottom for future footer */
+    /* max-width: 1600px; */
     width: 100%;
     box-sizing: border-box;
     margin: 0 auto;
 }
 .chat-space {
     flex: 1;
-    overflow-y: auto;
-    background-color: red;
-    border: 1px solid #e5e5ea;
-    border-radius: 0.25rem;
+    overflow-y: scroll;
+    /* background-color: red; */
+    /* border: 0px solid #e5e5ea; */
+    /* border-radius: 0.25rem; */
     display: flex;
     flex-direction: column;
     font-size: 1.25rem;
@@ -42,14 +42,14 @@
 
 p.from-user {
 	align-self: flex-end;
-	background-color: #248bf5;
+	background-color: #a58d6f;
 	color: #fff; 
 	border-bottom-right-radius: 2px;
 }
 
 p.from-user::before {
 	border-bottom-left-radius: 0.8rem 0.7rem;
-	border-right: 1rem solid #248bf5;
+	border-right: 1rem solid #a58d6f;
 	right: -0.35rem;
 	transform: translate(0, -0.1rem);
 }
@@ -106,7 +106,7 @@ p.from-ai::after {
 }
 
 
-.input-prompt {
+.inputreferences-prompt {
 	display: flex;
 	width:100%;
 	background-color: greenyellow;
@@ -117,11 +117,26 @@ p.from-ai::after {
 
 .input {
 	width: 90%;
-	height:30px;
+	height:39px;
 	padding-left: 5px;
 }
 
 .send-button {
-	height:30px;
+	height:45px;
 	cursor: pointer;
+	background-color: #ffeccc;
+	border: 1px solid #a58d6f;
+	border-radius: 15px;
+}
+
+.send-button:disabled {
+	background-color: #ccc;
+	color: #666;
+	cursor: not-allowed;
+	opacity: 0.6;
+  }
+  
+.references {
+	margin-top: -40px;
+	padding-left: 45px ;
 }

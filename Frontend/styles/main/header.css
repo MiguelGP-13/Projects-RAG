@@ -1,5 +1,5 @@
 .header {
-    background-color: rgb(243,248,254);
+    background-color: #f3f8fe;
     display: flex;
     justify-content: space-between; 
     align-items: center; 
@@ -22,9 +22,10 @@
 
 .files-button {
     display: flex;
-    background-color: black;
-    color: white;
+    background-color: #ffeccc;
+    color: #895200;
     width: 50px;
+    height:70px;
     padding-right: 10px;
     border-top-left-radius: 15px;
     border-bottom-left-radius: 15px;
@@ -39,15 +40,17 @@
     overflow: hidden;
     transition: width 0.3s ease-in-out; /* Animación fluida */
     margin-right: 15px;
+    cursor: pointer;
 }
 
 .files-arrow {
     text-align: center;
     transition: margin-left 0.3s ease-in-out; /* Mover con animación */
+    cursor: pointer;
 }
 
 .files-button:hover {
-    width: 85px;
+    width: 90px;
     justify-content: flex-start; /* Cambiar alineación */
     padding-left: 15px;
     cursor: pointer;

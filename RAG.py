@@ -24,8 +24,9 @@ def alredy_stored(indice, hash, redis):
     Checks if a chunk has already been stored in the database. If it has, it checks if the content has changed.
     '''
     guardado=redis.hget(indice, "hash")
-    print(guardado.decode(), guardado.decode() == hash, hash, type(hash), type(guardado.decode()))
+    print(guardado)
     if guardado:
+        print(guardado.decode(), guardado.decode() == hash, hash, type(hash), type(guardado.decode()))
         return guardado.decode() == hash
     else:
         return False
@@ -67,7 +68,7 @@ def create_embeddings_pag(texto, chunk_size, embedder, redis, nombre, pagina):
     for j in range(1, len(texto), chunk_size):
         chunk = texto[j:j + chunk_size]
         hash = md5(chunk.encode(), usedforsecurity= False).hexdigest()
-        indice = idx+str(hash)
+        indice = idx+str(j)
         if not alredy_stored(indice, hash, redis):
             chunk_nuevos.append((indice, chunk, hash))
     print('Creating embeddigns', len(chunk_nuevos))
@@ -110,7 +111,7 @@ def query(prompt, modelo, embedder, redis, indice, N= 3):
     print(search_embd)
     query = (
         Query(f'*=>[KNN {N} @embedding $embeddings]')
-        .return_fields("referencia" )  
+        .return_fields("referencia")  
         .dialect(2)
     )
     contexto = redis.ft(indice).search(

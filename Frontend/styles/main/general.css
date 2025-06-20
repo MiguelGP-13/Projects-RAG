@@ -2,12 +2,17 @@ html, body {
     height: 100%;
     margin: 0;
     padding: 0;
+    background-color: #895200;
 }
 
 body {
     display: flex;
     justify-content: center;
     align-items: stretch;
+}
+
+p {
+    cursor:default;
 }
 
 .Wrapper {
@@ -24,4 +29,20 @@ body {
 	margin-top: 0px;
 	/* align-items: center; */
 	justify-content: space-evenly;
+    height: 100%;
+}
+
+.signature {
+    border-radius: 30px;
+    height: 40px;
+    width: 65px;
+    box-shadow: 18px 8px 0px black;
+    background-color: #7afac4;
+    color:white;
+    border: 0;
+    font-size: 18px;
+    position: absolute;
+    left: 5;
+    bottom: 50px;
+    cursor: pointer;
 }

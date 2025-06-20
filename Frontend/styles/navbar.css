@@ -1,8 +1,0 @@
-.navbar {
-	background-color: rgb(243,248,254);
-	width: 120px;
-	color: white;
-	display: flex;
-	flex-direction: column;
-	justify-content: space-between;
-}

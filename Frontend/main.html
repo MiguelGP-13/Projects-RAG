@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<title>chat</title>
+		<link rel="stylesheet" href="styles/main/general.css">
+		<link rel="stylesheet" href="styles/main/header.css">
+		<link rel="stylesheet" href="styles/main/chat.css">
+		<link rel="stylesheet" href="styles/main/footer.css">
+		<link rel="stylesheet" href="styles/main/navbar.css">
+	</head>
+
+	<body>
+		<div class="Wrapper">
+			<header class="header">
+				<div class="title-left">
+					<img class="logo" src="images/logo.png">
+					<p>Docuchat</p>
+				</div>
+				<div class="files-button" onclick="window.location.href='files.html'">
+					<p class="files-text">Files</p>
+					<p class="files-arrow"><img class="logo" src = "images/files.png"></p>
+				</div>
+			</header>
+			<div class="content">
+				<div class="navbar">
+					<div class="title-left">
+						<img class="logo" src="images/logo.png">
+						<p>Chat</p>
+					</div>
+					<div class="title-left">
+						<img class="logo" src="images/logo.png">
+						<p>RAG</p>
+					</div>
+					<div class="title-left">
+						<img class="logo" src="images/logo.png">
+						<p>Cuestionario</p>
+					</div>
+					<button class="signature" onclick="window.open('https://github.com/MiguelGP-13', '_blank')">MGP</button>
+				</div>
+				<main class="chat-with-ai">
+					<div class="chat-space js-chat-space">
+						<div class="text-container-ai">
+							<img class="logo-ai" src="images/robot.png">
+							<p class="from-ai">It was loud. We just laid there and said &ldquo;is this an earthquake? I think this is an earthquake.&rdquo;</p>
+						</div>
+						<div class="references"><p>References: [,]</p></div>
+						<div class="text-container-ai">
+							<img class="logo-ai" src="images/robot.png">
+							<p class="from-ai">It was loud. We just laid there and said &ldquo;is this an earthquake? I think this is an earthquake.&rdquo;</p>
+						</div>
+						<div class="text-container-user">
+							<p class="from-user">Like is this an earthquake just go back to sleep</p>
+							<img class="logo-ai" src="images/user.png">
+						</div>
+						
+					</div>   
+					<div class="input-prompt">
+						<input class="input" id="js-input" placeholder="Write your question">
+						<button class="send-button" id="js-send-button"><img class="logo" src="images/send.png"></button>
+					</div>
+				</main>
+				<div class ="footer">
+
+				</div>
+			</div>
+			<footer class="footer">
+
+			</footer>
+		</div>
+	</body>
+	<script src="scripts/main.js"></script>
+</html>
