@@ -7,6 +7,7 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 import json
 from mistralai import Mistral
+# from huggingface_hub import InferenceClient
 from RAG import *
 
 from dotenv import load_dotenv
@@ -23,13 +24,15 @@ DIMENSION = os.getenv('DIMENSION')
 CHUNK_SIZE = int(os.getenv('CHUNK_SIZE'))
 CONTEXT_SIZE = os.getenv('CONTEXT_SIZE')
 DOCUMENT_FOLDER = os.getenv('DOCUMENT_FOLDER')
-# if mode=='Extern':
-#     API_KEY = os.getenv('API_MODEL')
-#     API_EMBEDDING = os.getenv('API_EMBEDDINGS')
+
 if MODE == 'Mistral':
-    MODEL = Mistral(api_key=os.getenv('API_MODEL'))
+    MODEL = Mistral(api_key=os.getenv('API_MISTRAL'))
     MODEL_EMBEDDING = MODEL
     DIMENSION = 1024
+# if MODE == 'HuggingFace':
+#     MODEL = InferenceClient(api_key=os.getenv('API_HUGGING_FACE'))
+#     MODEL_EMBEDDING = MODEL
+#     DIMENSION = 1024
 elif MODE != 'Local':
     raise Exception('MODE enviroment variable supported types are: [LOCAL, MISTRAL]')
 
@@ -142,5 +145,21 @@ def delete_doc():
 
 ### ADD A CALL TO SEND DOCUMENTS
 
+
+@app.route("/upload", methods=['POST'])
+def upload():
+    uploaded_files = request.files.getlist("files") 
+    saved_file_paths = []
+
+    for file in uploaded_files:
+        if file.filename.endswith('.pdf'): 
+            file.filename = file.filename.replace(' ', '_').split('.')[0] # We clean the name
+            filepath = f"{DOCUMENT_FOLDER}/{file.filename}" # We save the file
+            file.save(filepath)
+            saved_file_paths.append(filepath)
+
+    print("Uploaded files:", saved_file_paths)
+    return jsonify({'success': True, 'files': saved_file_paths})
+
 if __name__ == '__main__':
-    app.run(host='127.0.0.3', port=1234)
+    app.run(host='127.0.0.3', port=13001)

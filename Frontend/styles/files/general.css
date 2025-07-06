@@ -1,0 +1,19 @@
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    background-color: #a094a9;
+}
+
+body {
+    display: flex;
+    justify-content: center;
+    align-items: stretch;
+}
+
+p {
+    cursor:default;
+}
+
+.content {
+    padding: 95px;}

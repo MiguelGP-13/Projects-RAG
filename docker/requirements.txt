@@ -6,3 +6,5 @@ import ollama
 from hashlib import md5
 from pypdf import PdfReader
 import numpy as np
+import mistralai
+# import huggingface_hub

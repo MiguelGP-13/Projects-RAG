@@ -21,14 +21,13 @@ function sendMessage() {
     space.innerHTML += `<div class="text-container-user">
 							<p class="from-user">${query}</p>
 							<img class="logo-ai" src="images/user.png">
-						</div>
-                        <div id="js-loading">Cargando...</div>`;
+						</div>`;
     input.value = ''
     button.disabled = true
-    const loading = document.getElementById('loading');
-    loading.style.display = 'block'; // ← Show loading
+    // const loading = document.getElementById('loading');
+    // loading.style.display = 'block'; // ← Show loading
     // Send message to python backend
-    fetch('http://127.0.0.3:1234/query', {
+    fetch('http://127.0.0.3:13001/query', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -39,8 +38,6 @@ function sendMessage() {
     })
     .then(response => response.json())
     .then(data => {
-        const loading = document.getElementsByClassName('js-loading')[0]
-        loading.innerHTML = ''
         if (data.success) {
             // Retrieve the answer and references used byt LLM
             const answer = data.answer
@@ -52,6 +49,7 @@ function sendMessage() {
 						<div class="references"><p>References: [${references}]</p></div>
 						`
             space.innerHTML += answerHTML
+            console.log(answer)
         }
         else {
             alert(data.error_code + ': ' + data.description);

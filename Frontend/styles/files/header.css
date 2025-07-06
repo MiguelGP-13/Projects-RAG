@@ -1,0 +1,62 @@
+.header {
+    background-color: #f3f8fe;
+    display: flex;
+    justify-content: space-between; 
+    align-items: center; 
+    padding: 10px 5px 10px 0px;
+    position: fixed;
+    width: 100%;
+    top:0;
+    left:0;
+}
+
+.logo {
+    width: 40px;
+    height: auto;
+    object-fit:contain;
+}
+
+.title-left {
+    display: flex;
+}
+
+.files-button {
+    display: flex;
+    background-color: #ffeccc;
+    color: #895200;
+    width: 50px;
+    height:70px;
+    padding-left: 10px;
+    border-top-right-radius: 15px;
+    border-bottom-right-radius: 15px;
+    align-items: center;
+    justify-content: center; /* Centrar elementos */
+    position: relative;
+}
+
+.files-text {
+    visibility: hidden; /* Ocultar completamente el texto */
+    width: 0; /* No ocupar espacio */
+    overflow: hidden;
+    transition: width 0.3s ease-in-out; /* Animación fluida */
+    margin-right: 15px;
+    cursor: pointer;
+}
+
+.files-arrow {
+    text-align: center;
+    transition: margin-right 0.3s ease-in-out; /* Mover con animación */
+    cursor: pointer;
+}
+
+.files-button:hover {
+    width: 90px;
+    justify-content: flex-start; /* Cambiar alineación */
+    padding-left: 15px;
+    cursor: pointer;
+}
+
+.files-button:hover .files-text {
+    visibility: visible;
+    width: auto; /* Expandir el texto */
+}

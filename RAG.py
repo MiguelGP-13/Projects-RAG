@@ -81,11 +81,13 @@ def create_embeddings_pag(text, chunk_size, embedder, redis, name, page, mode):
     if mode == 'Local':
         if len(new_chunks) > 0: # Don't call model if we don't have chunks to encode
             embeddings = ollama.embed(model=embedder, input=[j[1] for j in new_chunks]).embeddings
-    if mode == 'Mistral':
+    elif mode == 'Mistral':
         if len(new_chunks) > 0: # Don't call model if we don't have chunks to encode
             embeddings_batch_response = embedder.embeddings.create(
                 model= "mistral-embed", inputs=[j[1] for j in new_chunks])
             embeddings = [k.embedding for k in embeddings_batch_response.data]
+    # elif mode == 'HuggingFace':
+
     ## We save in the redis db
     print('Saving')
     for i, embedding in enumerate(embeddings):
@@ -156,5 +158,15 @@ def query(prompt, model, embedder, redis, search_index, N, mode):
                 },
             ]
         ).choices[0].message
+    # elif mode == 'HuggingFace':
+    #     answer = model.chat.completions.create(
+    #         model="mistralai/Mistral-7B-Instruct-v0.3",
+    #         messages=[
+    #             {
+    #                 "role": "user",
+    #                 "content": input_message
+    #             }
+    #         ],
+    #     ).choices[0].message
     print(answer)
     return answer, reference_list, [doc.referencia for doc in contexto]

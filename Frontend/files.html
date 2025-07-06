@@ -1,11 +1,30 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <title>files</title>
-        <link rel="stylesheet" href="styles/files.css">
-    </head>
-    <body>
-        <p>Aquí irá la subida de archivos</p>
-    </body>
-</html>
+  <head>
+    <title>Files</title>
+    <link rel="stylesheet" href="styles/files/header.css">
+    <link rel="stylesheet" href="styles/files/general.css">
+  </head>
+  <body>
     
+    <header class="header">
+      <div class="files-button" onclick="window.location.href='main.html'">
+        <p class="files-arrow">
+          <img class="logo" src="images/files.png">
+        </p>
+        <p class="files-text">Chat</p>
+      </div>
+      <p>Files</p>
+    </header> 
+   
+    <div class="content">
+        <form id="fileForm">
+        <input type="file" id="files" name="files" multiple>
+        <button type="submit">Upload Files</button>
+        </form>
+
+        <div id="status"></div>
+    </div>
+    <script src="scripts/files.js"></script>
+  </body>
+</html>
