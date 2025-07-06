@@ -49,72 +49,92 @@ def delete_embeddings(file_name, redis):
         redis.delete(*keys)
     return len(keys)
 
-def create_embeddings_pag(texto, chunk_size, embedder, redis, nombre, pagina):
+def create_embeddings_pag(text, chunk_size, embedder, redis, name, page, mode):
     '''
-    texto: str = Text to be encoded
+    texts: str = Text to be encoded
     chunk_size: int = Size of each chunk to be encoded separately
-    modelo: str = Model to be used for encoding
+    embedder: str = Model to be used for creating embeddings
     redis: Redis = Connection to the Redis database
-    nombre: str = Name of the document
-    pagina: int = Page number of the document
+    name: str = Name of the document
+    page: int = Page number of the document
+    mode: str = Mode in wich LLM is hosted
 
     return: int = Number of chunks obtained from the page
 
 
     Creates embeddings and saves them in the Redis vector database.
     '''
-    idx = f"documentos:{nombre}:{pagina}:"
-    chunk_nuevos = []
-    for j in range(1, len(texto), chunk_size):
-        chunk = texto[j:j + chunk_size]
+    ## We create index, hash and making sure it isn't alredy created (with the same content)
+    idx = f"documentos:{name}:{page}:"
+    new_chunks = []
+    counter = 0
+    for j in range(1, len(text), chunk_size):
+        chunk = text[j:j + chunk_size]
         hash = md5(chunk.encode(), usedforsecurity= False).hexdigest()
-        indice = idx+str(j)
-        if not alredy_stored(indice, hash, redis):
-            chunk_nuevos.append((indice, chunk, hash))
-    print('Creating embeddigns', len(chunk_nuevos))
-    i = -1
-    if len(chunk_nuevos) > 0: # Don't call model if we don't have chunks to encode
-        embeddings = ollama.embed(model=embedder, input=[i[1] for i in chunk_nuevos]).embeddings
-        print('Saving')
-        for i, embedding in enumerate(embeddings):
-            redis.hset(chunk_nuevos[i][0], mapping={"embedding":to_blob(np.array(embedding)),"hash":chunk_nuevos[i][2], "referencia":chunk_nuevos[i][1]})
+        index = idx+str(counter)
+        counter += 1
+        if not alredy_stored(index, hash, redis): # If the chunk alredy exists and hasn't changed content it's not created again
+            new_chunks.append((index, chunk, hash))
+    
+    ## API Call to create embeddigns
+    print('Creating embeddigns', len(new_chunks))
+    if mode == 'Local':
+        if len(new_chunks) > 0: # Don't call model if we don't have chunks to encode
+            embeddings = ollama.embed(model=embedder, input=[j[1] for j in new_chunks]).embeddings
+    if mode == 'Mistral':
+        if len(new_chunks) > 0: # Don't call model if we don't have chunks to encode
+            embeddings_batch_response = embedder.embeddings.create(
+                model= "mistral-embed", inputs=[j[1] for j in new_chunks])
+            embeddings = [k.embedding for k in embeddings_batch_response.data]
+    ## We save in the redis db
+    print('Saving')
+    for i, embedding in enumerate(embeddings):
+        redis.hset(new_chunks[i][0], mapping={"embedding":to_blob(np.array(embedding)),"hash":new_chunks[i][2], "referencia":new_chunks[i][1]})
     return i + 1
 
-def create_embeddings_pdf(ruta_pdf: str, chunk_size, embedder, redis):
+def create_embeddings_pdf(pdf_path: str, chunk_size: int, embedder, redis, mode):
     '''
-    ruta_pdf: str = Path to the PDF file to be encoded
+    pdf_path: str = Path to the PDF file to be encoded
     chunk_size: int = Size of each chunk to be encoded separately
     modelo: str = Model to be used for encoding
     redis: Redis = Connection to the Redis database
 
     Divides the pdf into chunks and saves them in the Redis vector database
     '''
-    nombre = ruta_pdf.split('.')[0].split('/')[-1]
-    reader = PdfReader(ruta_pdf)
+    nombre = pdf_path.split('.')[0].split('/')[-1]
+    reader = PdfReader(pdf_path)
     chunks = 0
     for idx, page in enumerate(reader.pages):
-        chunks += create_embeddings_pag(page.extract_text(),chunk_size, embedder, redis, nombre, idx) # Crea embeddings y devuelve numero de chunks
+        chunks += create_embeddings_pag(page.extract_text(),chunk_size, embedder, redis, nombre, idx, mode) # Crea embeddings y devuelve numero de chunks
     print(f"¡{chunks} creados!")
     return chunks
 
 
-def query(prompt, modelo, embedder, redis, indice, N= 3):
+def query(prompt, model, embedder, redis, search_index, N, mode):
     '''
     prompt: str = Question about the document database
-    modelo: str = Model to be used for encoding
+    model: str = Model to be used for encoding
     redis: Redis = Connection to the Redis database
+    search_index: str = Name of the index created in redis
+    N: int = Number of similar chunks
+    mode: str = Local or Mistral
 
+    Embedds the query, searchs more similar chunks and LLM writes the answer
     '''
-    if indice.encode() not in redis.execute_command("FT._LIST"):
+    if search_index.encode() not in redis.execute_command("FT._LIST"):
         raise IndexError('El índice de la base de datos no existe. Reinicie el servicio.')
-    search_embd = ollama.embed(model=embedder, input=prompt).embeddings[0]
+    if mode == 'Local':
+        search_embd = ollama.embed(model=embedder, input=prompt).embeddings[0]
+    elif mode == 'Mistral':
+            search_embd = embedder.embeddings.create(
+                model= "mistral-embed", inputs=prompt).data[0].embedding
     print(search_embd)
     query = (
         Query(f'*=>[KNN {N} @embedding $embeddings]')
         .return_fields("referencia")  
         .dialect(2)
     )
-    contexto = redis.ft(indice).search(
+    contexto = redis.ft(search_index).search(
         query,
         {
           'embeddings': to_blob(np.array(search_embd)) # Replaces $embeddings
@@ -126,5 +146,15 @@ def query(prompt, modelo, embedder, redis, indice, N= 3):
     f"\n-----\n".join([doc.referencia for doc in contexto]) + \
     f"\nPregunta: {prompt}."
     print(input_message)
-    answer = ollama.chat(model=modelo, messages=[{'role':'user', 'content':input_message}]).message
+    if mode == 'Local':
+        answer = ollama.chat(model=model, messages=[{'role':'user', 'content':input_message}]).message
+    elif mode == 'Mistral':
+        answer = model.chat.complete(model= "mistral-medium-2505", messages = [
+                {
+                    "role": "user",
+                    "content": input_message,
+                },
+            ]
+        ).choices[0].message
+    print(answer)
     return answer, reference_list, [doc.referencia for doc in contexto]

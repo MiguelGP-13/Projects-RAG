@@ -106,13 +106,14 @@ p.from-ai::after {
 }
 
 
-.inputreferences-prompt {
+.input-prompt {
 	display: flex;
 	width:100%;
-	background-color: greenyellow;
+	/* background-color: greenyellow; */
 	margin-top: 0px;
 	align-items: center;
 	justify-content: space-evenly;
+	margin-bottom: 20px;
 }
 
 .input {

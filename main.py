@@ -6,6 +6,7 @@ from tqdm import tqdm
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 import json
+from mistralai import Mistral
 from RAG import *
 
 from dotenv import load_dotenv
@@ -14,7 +15,7 @@ load_dotenv('.env.settings')  # carga el archivo con tus variables
 load_dotenv('.env.secrets')
 
 ## Load enviroment variables
-mode = os.getenv('MODE')
+MODE = os.getenv('MODE')
 DB_PASS = os.getenv('DB_PASSWORD')
 MODEL_EMBEDDING = os.getenv('EMBEDDINGS')
 MODEL = os.getenv('MODEL')
@@ -22,12 +23,15 @@ DIMENSION = os.getenv('DIMENSION')
 CHUNK_SIZE = int(os.getenv('CHUNK_SIZE'))
 CONTEXT_SIZE = os.getenv('CONTEXT_SIZE')
 DOCUMENT_FOLDER = os.getenv('DOCUMENT_FOLDER')
-if mode=='Externo':
-    API_KEY = os.getenv('API_MODEL')
-    API_EMBEDDING = os.getenv('API_EMBEDDINGS')
-if mode == 'Mistral':
-    API_KEY = os.getenv('API_MODEL')
-    API_EMBEDDING = os.getenv('API_MODEL')
+# if mode=='Extern':
+#     API_KEY = os.getenv('API_MODEL')
+#     API_EMBEDDING = os.getenv('API_EMBEDDINGS')
+if MODE == 'Mistral':
+    MODEL = Mistral(api_key=os.getenv('API_MODEL'))
+    MODEL_EMBEDDING = MODEL
+    DIMENSION = 1024
+elif MODE != 'Local':
+    raise Exception('MODE enviroment variable supported types are: [LOCAL, MISTRAL]')
 
 
 ## Create conexion to db and create index to search embeddings
@@ -61,11 +65,11 @@ def update_redis(): # list with pdf paths
         pdfs = message["pdfs_array"]
     else:
         print(os.listdir(DOCUMENT_FOLDER))
-        pdfs  = [doc for doc in os.listdir(DOCUMENT_FOLDER) if doc.endswith('.pdf')]
+        pdfs  = [os.path.join(DOCUMENT_FOLDER, doc) for doc in os.listdir(DOCUMENT_FOLDER) if doc.endswith('.pdf')]
 
     n_chunks = 0
     for pdf in tqdm(pdfs, desc="Processing PDFs", unit="file"):
-        n_chunks += create_embeddings_pdf(pdf, CHUNK_SIZE, MODEL_EMBEDDING, REDIS_DB)
+        n_chunks += create_embeddings_pdf(pdf, CHUNK_SIZE, MODEL_EMBEDDING, REDIS_DB, MODE)
     
     return jsonify({'success':True, "pdfs_created":pdfs, "number_of_chunks": f"{n_chunks} new chunks were created"})
 
@@ -76,7 +80,7 @@ def query_database():
         return jsonify({'success':False,"error_code":100, 'description':f"The compulsary value \"prompt\" was not found in the json."})
     prompt = message['prompt']
     try:
-        answer, context, context_text = query(prompt, MODEL, MODEL_EMBEDDING, REDIS_DB, INDICE_REDIS, CONTEXT_SIZE)
+        answer, context, context_text = query(prompt, MODEL, MODEL_EMBEDDING, REDIS_DB, INDICE_REDIS, CONTEXT_SIZE, MODE)
         return jsonify({'answer':answer.content, 'references':context, 'reference_text':context_text, 'success':True})
     except Exception as e:
         return jsonify({'success':False, "error_code":0, 'description':f"Unexpected error: {e}"})
@@ -136,7 +140,7 @@ def delete_doc():
             return jsonify({'success':False, "error_code":0, 'description':f"TUnexpected error: {e}"})
     return jsonify({'success':True, "description":f" The file {file_name} was deleted", 'database_cleared':f"{clear} chunks deleted"})
 
-### ADD MAYBE A CALL TO SEND DOCUMENTS
+### ADD A CALL TO SEND DOCUMENTS
 
 if __name__ == '__main__':
     app.run(host='127.0.0.3', port=1234)
