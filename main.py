@@ -57,6 +57,13 @@ else:
 
 
 #### CREATE API backend ####
+def embedd_pdf(pdfs):
+    n_chunks = 0
+    for pdf in tqdm(pdfs, desc="Processing PDFs", unit="file"):
+        n_chunks += create_embeddings_pdf(pdf, CHUNK_SIZE, MODEL_EMBEDDING, REDIS_DB, MODE)
+    
+    return jsonify({'success':True, "pdfs_created":pdfs, "number_of_chunks": f"{n_chunks} new chunks were created"})
+
 app = Flask(__name__)
 CORS(app) 
 
@@ -70,11 +77,10 @@ def update_redis(): # list with pdf paths
         print(os.listdir(DOCUMENT_FOLDER))
         pdfs  = [os.path.join(DOCUMENT_FOLDER, doc) for doc in os.listdir(DOCUMENT_FOLDER) if doc.endswith('.pdf')]
 
-    n_chunks = 0
-    for pdf in tqdm(pdfs, desc="Processing PDFs", unit="file"):
-        n_chunks += create_embeddings_pdf(pdf, CHUNK_SIZE, MODEL_EMBEDDING, REDIS_DB, MODE)
-    
-    return jsonify({'success':True, "pdfs_created":pdfs, "number_of_chunks": f"{n_chunks} new chunks were created"})
+    try:
+        return embedd_pdf(pdfs) 
+    except Exception as e:
+        return jsonify({'success':False, "error_code":0, 'description':f"Unexpected error ocurred while embeddign pdfs: {e}"})
 
 @app.route("/query", methods=['POST'])
 def query_database():
@@ -148,18 +154,29 @@ def delete_doc():
 
 @app.route("/upload", methods=['POST'])
 def upload():
-    uploaded_files = request.files.getlist("files") 
-    saved_file_paths = []
+    try:
+        uploaded_files = request.files.getlist("files[]") 
+        saved_file_paths = []
+        if len(uploaded_files) == 0:
+            return jsonify({'success': False,"error_code":104, 'description':"No files arrived."})
+    except:
+        return jsonify({'success': False, "error_code":103, 'description':"Error ocurred while fetching files."})
+    try: 
+        for file in uploaded_files: # For each file we clean the name and save it in the files folder
+            if file.filename.endswith('.pdf'): 
+                file.filename = file.filename.replace(' ', '_').replace('/','-').replace('\\','-').split('.')[0] # We clean the name
+                filepath = f"{DOCUMENT_FOLDER}/{file.filename}.pdf" # We save the file
+                print(file, file.filename)
+                file.save(filepath)
+                saved_file_paths.append(filepath)
+        print("Uploaded files:", saved_file_paths)
+    except Exception as e:
+        return jsonify({'success': False, "error_code":103, 'description':"No files arrived."})
+    try: 
+        return embedd_pdf(saved_file_paths) # Updating redis database
+    except Exception as e:
+        return jsonify({'success':False, "error_code":0, 'description':f"Unexpected error ocurred while embeddign pdfs: {e}"})
 
-    for file in uploaded_files:
-        if file.filename.endswith('.pdf'): 
-            file.filename = file.filename.replace(' ', '_').split('.')[0] # We clean the name
-            filepath = f"{DOCUMENT_FOLDER}/{file.filename}" # We save the file
-            file.save(filepath)
-            saved_file_paths.append(filepath)
-
-    print("Uploaded files:", saved_file_paths)
-    return jsonify({'success': True, 'files': saved_file_paths})
 
 if __name__ == '__main__':
     app.run(host='127.0.0.3', port=13001)

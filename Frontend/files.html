@@ -14,14 +14,21 @@
         </p>
         <p class="files-text">Chat</p>
       </div>
-      <p>Files</p>
+      <button id="js-uploadButton" class="uploadButton">Upload Files</button>
+      <!-- <div class=" "> -->
+        <form id="fileForm" enctype="multipart/form-data">
+          <div class="title">
+            <p>Update Files</p>
+            <button id="js-exit">exit</button>
+          </div>
+          <input type="file" id="fileInput" name="files[]" multiple>
+          <button type="button" class="sendButton" id="js-sendButton">Send</button>
+        </form>
+      <!-- </div> -->
     </header> 
    
     <div class="content">
-        <form id="fileForm">
-        <input type="file" id="files" name="files" multiple>
-        <button type="submit">Upload Files</button>
-        </form>
+        
 
         <div id="status"></div>
     </div>

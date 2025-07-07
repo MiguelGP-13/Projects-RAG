@@ -32,6 +32,10 @@ files.html: Page to upload files for the RAG to use.
 
 102. The path of the file provided doesn't exists
 
+103. Error ocurred while fetching files
+
+104. No files arrived the backend
+
 ##  Launch Redis DB:
 docker run -d --name redis-stack -p 6379:6379 -p 8361:8001 -e REDIS_ARGS="--requirepass `password`" redis/redis-stack:latest
 
