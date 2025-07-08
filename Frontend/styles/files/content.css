@@ -1,0 +1,45 @@
+.content {
+    display: flex;
+    flex-direction: column;
+    width:100%;
+    margin-top:95px;
+    height: calc(100vh - 95px);
+    overflow-y: scroll;
+    overflow-x: auto;
+}
+
+.fileContainer {
+    display:flex;
+    border-top: 2px solid #e5e5ea;
+    color:white;
+    padding: 5px;
+    font-size: 30px;
+    min-height: 100px;
+    max-height: 160px;
+    align-items: center;
+    justify-content: space-between;
+}
+
+
+.fileButtons {
+    display:flex;
+    position:relative;
+    margin-right: 45px;
+    gap:20px;
+}
+
+.button {
+    background-color: #ffeccc;
+    color:  #895200;
+    border-radius: 10px;
+    border-width: 0px;
+    width: 60px;
+    height: 30px;
+    cursor: pointer;
+}
+
+.files {
+    text-align: center;
+    color: white;
+    text-decoration: underline;
+}

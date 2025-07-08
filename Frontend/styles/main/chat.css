@@ -12,7 +12,7 @@
 .chat-space {
     flex: 1;
     overflow-y: scroll;
-    /* background-color: red; */
+    /* background-color: #a094a9; */
     /* border: 0px solid #e5e5ea; */
     /* border-radius: 0.25rem; */
     display: flex;
@@ -55,7 +55,7 @@ p.from-user::before {
 }
 
 p.from-user::after {
-	background-color: red;
+	background-color: #a094a9;
 	border-bottom-left-radius: 0.5rem;
 	right: -40px;
 	transform:translate(-30px, -2px);
@@ -77,7 +77,7 @@ p.from-ai:before {
 }
 
 p.from-ai::after {
-	background-color: red;
+	background-color: #a094a9;
 	border-bottom-right-radius: 0.5rem;
 	left: 20px;
 	transform: translate(-30px, -2px);

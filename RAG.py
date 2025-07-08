@@ -40,7 +40,7 @@ def delete_embeddings(file_name, redis):
 
     Deletes all embeddings created with that file.
     '''
-    file_name = file_name.split('.')[0].split('/')[-1]
+    file_name = file_name.split('/')[-1].split('.')[0]
     keys = redis.keys(f"documentos:{file_name}:*")
     print(f"documentos:{file_name}:*")
     print(keys)

@@ -58,8 +58,9 @@ else:
 
 #### CREATE API backend ####
 def embedd_pdf(pdfs):
+    print(pdfs)
     n_chunks = 0
-    for pdf in tqdm(pdfs, desc="Processing PDFs", unit="file"):
+    for pdf in pdfs:
         n_chunks += create_embeddings_pdf(pdf, CHUNK_SIZE, MODEL_EMBEDDING, REDIS_DB, MODE)
     
     return jsonify({'success':True, "pdfs_created":pdfs, "number_of_chunks": f"{n_chunks} new chunks were created"})
@@ -134,13 +135,14 @@ def delete_doc():
     if 'file_name' not in message.keys():
         return jsonify({'success':False,"error_code":100, 'description':f"The compulsary value \"file_name\" was not found in the json."})
     file_name = message['file_name']
+    file_name.replace(' ', '_').replace('/','-').replace('\\','-').split('.')[0] # We clean the name
 
     clear = 0 # Number of chunks deleted
     if "clear_database" in message.keys():
         clear = message["clear_database"] # clear= True (must clean db)
         
     try:
-        os.remove(DOCUMENT_FOLDER+'/' + file_name)
+        os.remove(f"{DOCUMENT_FOLDER}/{file_name}.pdf")
         if clear:
             clear = delete_embeddings(file_name, REDIS_DB) # clear= Number of chunks deleted
     except FileNotFoundError:
@@ -149,11 +151,9 @@ def delete_doc():
             return jsonify({'success':False, "error_code":0, 'description':f"TUnexpected error: {e}"})
     return jsonify({'success':True, "description":f" The file {file_name} was deleted", 'database_cleared':f"{clear} chunks deleted"})
 
-### ADD A CALL TO SEND DOCUMENTS
-
 
 @app.route("/upload", methods=['POST'])
-def upload():
+def upload(): # Saves a file in the files folder and updates the redis DB
     try:
         uploaded_files = request.files.getlist("files[]") 
         saved_file_paths = []
@@ -177,6 +177,13 @@ def upload():
     except Exception as e:
         return jsonify({'success':False, "error_code":0, 'description':f"Unexpected error ocurred while embeddign pdfs: {e}"})
 
+@app.route("/files", methods=['GET'])
+def pdfs():
+    try:
+        return jsonify({'success':True, 'files':[file.split('.')[0] for file in os.listdir(DOCUMENT_FOLDER)]})
+    except Exception as e:
+        print('no ha ido')
+        return jsonify({'success':False, "error_code":0, 'description':f"Unexpected error ocurred while loading available files: {e}"})
 
 if __name__ == '__main__':
     app.run(host='127.0.0.3', port=13001)

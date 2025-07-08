@@ -2,8 +2,9 @@
 <html>
   <head>
     <title>Files</title>
-    <link rel="stylesheet" href="styles/files/header.css">
     <link rel="stylesheet" href="styles/files/general.css">
+    <link rel="stylesheet" href="styles/files/header.css">
+    <link rel="stylesheet" href="styles/files/content.css">
   </head>
   <body>
     
@@ -14,24 +15,18 @@
         </p>
         <p class="files-text">Chat</p>
       </div>
-      <button id="js-uploadButton" class="uploadButton">Upload Files</button>
-      <!-- <div class=" "> -->
-        <form id="fileForm" enctype="multipart/form-data">
-          <div class="title">
-            <p>Update Files</p>
-            <button id="js-exit">exit</button>
-          </div>
-          <input type="file" id="fileInput" name="files[]" multiple>
-          <button type="button" class="sendButton" id="js-sendButton">Send</button>
-        </form>
-      <!-- </div> -->
+      <button class="uploadButton js-uploadButton">Upload Files</button>
+      <form class="fileForm js-fileForm" enctype="multipart/form-data">
+        <div class="title">
+          <p>Upload Files</p>
+          <button class="exit js-exit"><img class="closeImg" src="images/close.png"></button>
+        </div>
+        <input type="file" id="fileInput" name="files[]" multiple>
+        <button type="button" class="sendButton js-sendButton">Send</button>
+      </form>
     </header> 
    
-    <div class="content">
-        
-
-        <div id="status"></div>
-    </div>
+    <main class="content"></main>
     <script src="scripts/files.js"></script>
   </body>
 </html>
