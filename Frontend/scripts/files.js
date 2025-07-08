@@ -28,7 +28,7 @@ function getFiles () {
     method: 'GET'}).then(response => response.json())
     .then(data => { // Generates html from the files available
       if (data.files.length === 0) {
-        content.innerHTML += '<h1 class="files">Files</h1><h2>No hay archivos en la base de datos</h2>';
+        content.innerHTML = '<h1 class="files">Files</h1><h2 style="text-align:center">There are no files in the database</h2>';
       }
       else {
         content.innerHTML = '<h1 class="files">Files</h1>';
