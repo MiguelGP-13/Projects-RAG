@@ -1,0 +1,58 @@
+
+/* FORM */
+.fileForm {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    font-family: 'Segoe UI', sans-serif;
+    position: fixed;
+    right: 45px;
+    top: 90px;
+    padding: 20px 15px;
+    background-color: #c9ddf4;
+    z-index: 1000;
+}
+
+.title {
+    display: flex;
+    justify-content:space-between; 
+    align-items:flex-start;
+    width:100%;
+}
+
+.fileForm p {
+    color:#895200;
+    font-size: 1.5rem;
+}
+
+  /* File input */
+  #fileInput {
+    font-size: 1rem;
+    padding: 6px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  
+  /* Send button */
+  .sendButton {
+    color: #ffeccc;
+    background-color: #895200;
+    padding: 12px 24px;
+    margin-top: 15px;
+    font-size: 1.2rem;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+
+.exit {
+    border-width: 0px;
+    background-color: #c9ddf4;
+    cursor: pointer;
+}
+  
+.closeImg {
+    width: 30px;
+    height: 30px;
+}

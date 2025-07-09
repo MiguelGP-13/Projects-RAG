@@ -8,6 +8,7 @@
 		<link rel="stylesheet" href="styles/main/chat.css">
 		<link rel="stylesheet" href="styles/main/footer.css">
 		<link rel="stylesheet" href="styles/main/navbar.css">
+		<link rel="stylesheet" href="styles/main/popup.css">
 	</head>
 
 	<body>
@@ -24,18 +25,28 @@
 			</header>
 			<div class="content">
 				<div class="navbar">
-					<div class="title-left">
-						<img class="logo" src="images/logo.png">
+					<p class="navbar-titles">Modes</p>
+					<div class="title-left" id="chat">
+						<img class="logo" src="images/logo_empty.png">
 						<p>Chat</p>
 					</div>
-					<div class="title-left">
-						<img class="logo" src="images/logo.png">
+					<div class="title-left" id="RAG">
+						<img class="logo" src="images/logo_empty.png">
 						<p>RAG</p>
 					</div>
-					<div class="title-left">
-						<img class="logo" src="images/logo.png">
-						<p>Cuestionario</p>
+					<div class="title-left" id="questionnaire">
+						<img class="logo" src="images/logo_empty.png">
+						<p>Questionnaire</p>
 					</div>
+					<hr class="custom-line">
+					<p class="navbar-titles">Chats</p>
+					<div class="open-chats">
+						<button class="chat">
+							<p>Abcedegergerete</p> <!--Max characters: 15-->
+							<img src="images/closedBin.png" class="delete-chat">
+						</button>
+					</div>
+					
 					<button class="signature" onclick="window.open('https://github.com/MiguelGP-13', '_blank')">MGP</button>
 				</div>
 				<main class="chat-with-ai">
@@ -65,8 +76,22 @@
 				</div>
 			</div>
 			<footer class="footer">
-
 			</footer>
+		</div>
+		<div class="popup-container">
+			<div class="popup">
+				<div class="new-chat">
+					<h1>Name the new chat:</h1>
+					<div class="input">
+						<div>
+							<input maxlength="15" placeholder="New name">
+							<p>Maximum 15 characters</p>
+						</div>
+						<button class="send-new-chat js-send-new-chat">Send</button>
+					</div>
+					<button class="exit js-exit"><img class="closeImg" src="images/close.png"></button>
+				</div>
+			</div>
 		</div>
 	</body>
 	<script src="scripts/main.js"></script>

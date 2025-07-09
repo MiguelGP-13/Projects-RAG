@@ -8,12 +8,14 @@ from flask_cors import CORS
 import json
 from mistralai import Mistral
 # from huggingface_hub import InferenceClient
-from RAG import *
+from Backend.RAG import *
+
+import json
 
 from dotenv import load_dotenv
 
-load_dotenv('.env.settings')  # carga el archivo con tus variables
-load_dotenv('.env.secrets')
+load_dotenv('../.env.settings')  # carga el archivo con tus variables
+load_dotenv('../.env.secrets')
 
 ## Load enviroment variables
 MODE = os.getenv('MODE')
@@ -24,6 +26,8 @@ DIMENSION = os.getenv('DIMENSION')
 CHUNK_SIZE = int(os.getenv('CHUNK_SIZE'))
 CONTEXT_SIZE = os.getenv('CONTEXT_SIZE')
 DOCUMENT_FOLDER = os.getenv('DOCUMENT_FOLDER')
+CHATS_FOLDER = os.getenv('CHATS_FOLDER')
+actual_chat = None
 
 if MODE == 'Mistral':
     MODEL = Mistral(api_key=os.getenv('API_MISTRAL'))
@@ -83,17 +87,25 @@ def update_redis(): # list with pdf paths
     except Exception as e:
         return jsonify({'success':False, "error_code":0, 'description':f"Unexpected error ocurred while embeddign pdfs: {e}"})
 
-@app.route("/query", methods=['POST'])
-def query_database():
+@app.route("/query/<mode>", methods=['POST'])
+def query_database(queryMode):
     message = request.json
     if 'prompt' not in message.keys():
         return jsonify({'success':False,"error_code":100, 'description':f"The compulsary value \"prompt\" was not found in the json."})
+    if 'chat' not in message.keys():
+        return jsonify({'success':False,"error_code":100, 'description':f"The compulsary value \"chat\" was not found in the json."})
     prompt = message['prompt']
+    actual_chat = CHATS_FOLDER + '/' + message['chat'] + '.json'
     try:
-        answer, context, context_text = query(prompt, MODEL, MODEL_EMBEDDING, REDIS_DB, INDICE_REDIS, CONTEXT_SIZE, MODE)
-        return jsonify({'answer':answer.content, 'references':context, 'reference_text':context_text, 'success':True})
+        if queryMode == "RAG":
+            answer, context, context_text, actual_chat = query(prompt, MODEL, MODEL_EMBEDDING, REDIS_DB, INDICE_REDIS, CONTEXT_SIZE, MODE, actual_chat)
+            return jsonify({'answer':answer.content, 'references':context, 'reference_text':context_text, 'success':True})
+        elif queryMode == "chat":
+            answer, actual_chat = LLMChat(prompt, MODEL, MODE, actual_chat)
+            return jsonify({'answer':answer.content, 'success':True})
     except Exception as e:
         return jsonify({'success':False, "error_code":0, 'description':f"Unexpected error: {e}"})
+
 
 @app.route('/add_doc', methods=['POST'])
 def add_file():
@@ -184,6 +196,31 @@ def pdfs():
     except Exception as e:
         print('no ha ido')
         return jsonify({'success':False, "error_code":0, 'description':f"Unexpected error ocurred while loading available files: {e}"})
+    
+@app.route("/chats", methods=['GET'])
+def get_chats():
+    try:
+        chats = [file for file in os.listdir(CHATS_FOLDER)]
+        conversations = []
+        for path in chats:
+            with open(CHATS_FOLDER + '/' + path, 'r') as chatFile:
+                conversations.append({"name":path.split('.')[0], "conversation":json.load(chatFile)}) # Name, conversation
+        return jsonify({'success':True, 'chats':conversations})
+    except Exception as e:
+        print('no ha ido')
+        return jsonify({'success':False, "error_code":0, 'description':f"Unexpected error ocurred while loading available chats: {e}"})
+
+@app.route("/chats/<name>", methods=['GET'])
+def get_chats(name):
+    try:
+        with open(CHATS_FOLDER + '/' + name + '.json', 'r') as chatFile:
+            conversation = json.load(chatFile)
+        return jsonify({'success':True, 'chat':conversation})
+    except FileNotFoundError:
+        return jsonify({'success':False, "error_code":105, 'description':f"Chat {name} does not exist."})
+    except Exception as e:
+        print('no ha ido')
+        return jsonify({'success':False, "error_code":0, 'description':f"Unexpected error ocurred while loading chat {name}: {e}"})
 
 if __name__ == '__main__':
     app.run(host='127.0.0.3', port=13001)

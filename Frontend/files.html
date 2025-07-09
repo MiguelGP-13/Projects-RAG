@@ -4,6 +4,7 @@
     <title>Files</title>
     <link rel="stylesheet" href="styles/files/general.css">
     <link rel="stylesheet" href="styles/files/header.css">
+    <link rel="stylesheet" href="styles/files/fileForm.css">
     <link rel="stylesheet" href="styles/files/content.css">
   </head>
   <body>
@@ -11,20 +12,20 @@
     <header class="header">
       <div class="files-button" onclick="window.location.href='main.html'">
         <p class="files-arrow">
-          <img class="logo" src="images/files.png">
+          <img class="logo" src="images/chat.png">
         </p>
         <p class="files-text">Chat</p>
       </div>
       <button class="uploadButton js-uploadButton">Upload Files</button>
-      <form class="fileForm js-fileForm" enctype="multipart/form-data">
-        <div class="title">
-          <p>Upload Files</p>
-          <button class="exit js-exit"><img class="closeImg" src="images/close.png"></button>
-        </div>
-        <input type="file" id="fileInput" name="files[]" multiple>
-        <button type="button" class="sendButton js-sendButton">Send</button>
-      </form>
     </header> 
+    <form class="fileForm js-fileForm" enctype="multipart/form-data">
+      <div class="title">
+        <p>Upload Files</p>
+        <button class="exit js-exit"><img class="closeImg" src="images/close.png"></button>
+      </div>
+      <input type="file" id="fileInput" name="files[]" multiple>
+      <button type="button" class="sendButton js-sendButton">Send</button>
+    </form>
    
     <main class="content"></main>
     <script src="scripts/files.js"></script>

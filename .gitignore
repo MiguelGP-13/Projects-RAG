@@ -1,8 +1,9 @@
-.env.secrets
+secrets.env
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
 
-documentos/
+Backend/documentos/
+Backend/chats/

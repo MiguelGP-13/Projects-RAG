@@ -36,6 +36,8 @@ files.html: Page to upload files for the RAG to use.
 
 104. No files arrived the backend
 
+105. The conversation you are trying to find do not exist
+
 ##  Launch Redis DB:
 docker run -d --name redis-stack -p 6379:6379 -p 8361:8001 -e REDIS_ARGS="--requirepass `password`" redis/redis-stack:latest
 

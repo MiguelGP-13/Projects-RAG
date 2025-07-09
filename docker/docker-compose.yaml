@@ -29,7 +29,7 @@ services:
     networks:
       - RAG_network
   webui:
-    image: nginx:latest
+    image: nginx:alpine
     depends_on:
       - redis
       - python_api
@@ -42,3 +42,8 @@ services:
 
 networks:
   RAG_network:
+
+# volumes:
+#   nginx_volume:
+
+#   python_volume:

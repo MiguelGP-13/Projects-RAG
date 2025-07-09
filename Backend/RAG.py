@@ -2,8 +2,26 @@ import ollama
 from hashlib import md5
 from pypdf import PdfReader
 import numpy as np
-
+import json
+import os
 from redis.commands.search.query import Query
+
+
+
+CHATS_FOLDER = os.getenv('CHATS_FOLDER')
+
+def saveChat(prompt, answer, actual_chat, references=None):
+    try:
+        with open(actual_chat, 'r') as f:
+            chat = json.load(f)
+    except FileNotFoundError:
+        chat = [] # The conversation is new
+    chat.append({"role":"user", "content":prompt}) # Add user prompt
+    chat.append({"role":"assistant", "content":answer, "references":references}) # Add assistant answer
+    with open(actual_chat, 'w') as f:
+        json.dump(chat, f)
+
+    return actual_chat
 
 def to_blob(embedding: np.array) -> bytes:
     """
@@ -112,7 +130,7 @@ def create_embeddings_pdf(pdf_path: str, chunk_size: int, embedder, redis, mode)
     return chunks
 
 
-def query(prompt, model, embedder, redis, search_index, N, mode):
+def query(prompt, model, embedder, redis, search_index, N, mode, actual_chat):
     '''
     prompt: str = Question about the document database
     model: str = Model to be used for encoding
@@ -123,31 +141,38 @@ def query(prompt, model, embedder, redis, search_index, N, mode):
 
     Embedds the query, searchs more similar chunks and LLM writes the answer
     '''
+    ## Compute the embeddings
     if search_index.encode() not in redis.execute_command("FT._LIST"):
-        raise IndexError('El índice de la base de datos no existe. Reinicie el servicio.')
+        raise IndexError('The Redis database index does not exist. Please restart the app.')
     if mode == 'Local':
         search_embd = ollama.embed(model=embedder, input=prompt).embeddings[0]
     elif mode == 'Mistral':
             search_embd = embedder.embeddings.create(
                 model= "mistral-embed", inputs=prompt).data[0].embedding
     print(search_embd)
+
+    ## Find the N most similar chunks
     query = (
         Query(f'*=>[KNN {N} @embedding $embeddings]')
         .return_fields("referencia")  
         .dialect(2)
     )
-    contexto = redis.ft(search_index).search(
+    context = redis.ft(search_index).search(
         query,
         {
           'embeddings': to_blob(np.array(search_embd)) # Replaces $embeddings
         }
     ).docs
-    print(contexto)
-    reference_list = [doc.id for doc in contexto]
+    print(context)
+    reference_list = [doc.id for doc in context]
+
+    ## Create the prompt
     input_message = "Utilizando solo y unicamente este contexto, responde a la pregunta del final. Contexto:\n" + \
-    f"\n-----\n".join([doc.referencia for doc in contexto]) + \
+    f"\n-----\n".join([doc.referencia for doc in context]) + \
     f"\nPregunta: {prompt}."
     print(input_message)
+
+    ## Generate the answer with the LLM aid
     if mode == 'Local':
         answer = ollama.chat(model=model, messages=[{'role':'user', 'content':input_message}]).message
     elif mode == 'Mistral':
@@ -169,4 +194,35 @@ def query(prompt, model, embedder, redis, search_index, N, mode):
     #         ],
     #     ).choices[0].message
     print(answer)
-    return answer, reference_list, [doc.referencia for doc in contexto]
+
+    ## Save chat
+    actual_chat = saveChat(prompt, answer, actual_chat, str(reference_list))
+
+    return answer, reference_list, [doc.referencia for doc in context], actual_chat
+
+def LLMChat(prompt, model, mode, actual_chat):
+    '''
+    prompt: str = Question about the document database
+    model: str = Model to be used for encoding
+    mode: str = Local or Mistral
+
+    Embedds the query, searchs more similar chunks and LLM writes the answer
+    '''
+    try: 
+        with open(actual_chat, 'r') as f:
+            chat = json.load(f)
+    except FileNotFoundError:
+        chat = []
+        print('Chat anterior no encontrado')
+    chat.append({'role':'user', 'content':prompt})
+    
+    ## Generate the answer with the LLM aid
+    if mode == 'Local':
+        answer = ollama.chat(model=model, messages=chat).message
+    elif mode == 'Mistral':
+        answer = model.chat.complete(model= "mistral-medium-2505", messages = chat).choices[0].message
+    
+    ## Save chat
+    actual_chat = saveChat(prompt, answer, actual_chat)
+
+    return answer, actual_chat
