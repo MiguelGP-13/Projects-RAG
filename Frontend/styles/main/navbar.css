@@ -103,3 +103,7 @@
 .open-chats .chat:disabled {
 	color: black;
 }
+
+.chat .delete-chat {
+	height: 20px;
+  }

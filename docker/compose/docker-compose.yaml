@@ -3,43 +3,38 @@ services:
     image: redis/redis-stack:latest
     container_name: redis
     ports:
-      - "8001:8001" # Redis Insights
-    enviroment:
-      - REDIS_ARGS= "--requirepass ${DB_PASSWORD}"
+      # - "6379:6379"
+      - "8361:8001" # Redis Insights
+    environment:
+      - REDIS_ARGS= --requirepass ${DB_PASSWORD}
     env_file:
-      - secrets.env
+      - ../../secrets.env
     volumes:
       - ./data:/data
     networks:
       - RAG_network
 
   python_api:
-    build: 
-      context: .
-      dockerfile: Dockerfile.RAG
+    image: miguelgp13/rag-backend:1.0
+    container_name: backend
     depends_on:
       - redis
     ports:
-      - "5000:5000"
-    volumes:
-      - ${DOCUMENT_FOLDER}:/app/documentos
+      - "13001:13001"
     env_file:
-      - settigns.env
-      - secrets.env
+      - settings.env
+      - ../../secrets.env
     networks:
       - RAG_network
-  webui:
-    image: nginx:alpine
-    depends_on:
-      - redis
-      - python_api
+    
+  frontend:
+    image: miguelgp13/rag-frontend:1.0
+    container_name: frontend
     ports:
-      - "80:80"
-    volumes:
-      - ./webui:/usr/share/nginx/html
+      - "1380:80"
     networks:
       - RAG_network
-
+      
 networks:
   RAG_network:
 

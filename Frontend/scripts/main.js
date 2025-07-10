@@ -35,16 +35,24 @@ function createChatSelector (name) {
     </button>` + openChats.innerHTML;
     // Wait until DOM updates
     requestAnimationFrame(() => {
-    document.querySelector(`.delete-chat[chat="${name}"]`).addEventListener('click',deleteChat)
+    const deleteButton = document.querySelector(`.delete-chat[chat="${name}"]`)
     console.log("Button " + document.querySelector(".chat#" + name).getAttribute('id') + " was registered");
     document.querySelector(`.chat#${name}`).addEventListener('click',(event) => {selectChat(event.currentTarget.getAttribute('id'));})
+    deleteButton.addEventListener('mouseover', () => {
+        deleteButton.src = 'images/openBin.png';
+      });
+    
+    deleteButton.addEventListener('mouseout', () => {
+        deleteButton.src = 'images/closedBin.png';
+      });
+    deleteButton.addEventListener('click',deleteChat);
     });
 }
 
 function createChat (event) {
     console.log('send new chat clicked: '+ event.target)
     const name = newChatInput.value.trim();
-    fetch('http://127.0.0.3:13001/createChat/' + name, {
+    fetch('http://' + apiHost + ':13001/createChat/' + name, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -83,7 +91,7 @@ function createChat (event) {
 
 function deleteChat (event) { // We delete the chat with the same id as the button pressed
     // Send the backend the order to delete that chat
-    fetch('http://127.0.0.3:13001/deleteChat/' + event.currentTarget.getAttribute('chat'), {
+    fetch('http://' + apiHost + ':13001/deleteChat/' + event.currentTarget.getAttribute('chat'), {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -94,6 +102,7 @@ function deleteChat (event) { // We delete the chat with the same id as the butt
     .then(data => {
         if (data.success) {
             chatSelected = undefined; // Select no chat
+            localStorage.removeItem("chatSelected");
             console.log('deleting chat')
             loadPage();
             console.log('page loaded')
@@ -103,6 +112,7 @@ function deleteChat (event) { // We delete the chat with the same id as the butt
             if (data.error_code === 105) {
                 console.log("Chat doesn't exist alredy")
                 chatSelected = undefined; // Select no chat
+                localStorage.removeItem("chatSelected");
                 loadPage();
             }
             else {alert(`Unexpected error ${data.error_code}: ${data.description}`)}
@@ -125,7 +135,7 @@ function sendMessage() { // Sends a message to the RAG, and writes the answer
 						</div>`;
     input.value = ''
     button.disabled = true
-    fetch('http://127.0.0.3:13001/query/' + mode, {
+    fetch('http://' + apiHost + ':13001/query/' + mode, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -172,7 +182,7 @@ function sendMessage() { // Sends a message to the RAG, and writes the answer
 }
 
 function loadPage () {
-    fetch('http://127.0.0.3:13001/chats', {
+    fetch('http://' + apiHost + ':13001/chats', {
     method: 'GET'})
     .then(response => response.json()).catch(() => alert('Backend API not ready, loadPage'))
     .then(data => { // Generates html from the chats available
@@ -187,10 +197,12 @@ function loadPage () {
         data.chats.forEach((element) => {
             createChatSelector(element.name)
         })
+        console.log(chatSelected);
         if (chatSelected) {
             selectChat(chatSelected)
         }
         else {
+            console.log('Borrado');
             // We open a new chat if no chat is selected 
             chatSpace.innerHTML =  `
             <div class="text-container-ai">
@@ -202,7 +214,7 @@ function loadPage () {
     }
 
 function loadConversation (conversationName) {
-    fetch('http://127.0.0.3:13001/chats/' + conversationName, {
+    fetch('http://' + apiHost + ':13001/chats/' + conversationName, {
         method: 'GET'})
     .then(response => response.json()).catch(() => alert('Backend api not ready, loadConversation'))
     .then(data => {
@@ -217,6 +229,7 @@ function loadConversation (conversationName) {
                     </div>`;
             }
             else {
+                chatSpace.innerHTML = '';
                 const name = data.chat.name;
                 const conversation = data.chat;
                 conversation.forEach((comment) => {
@@ -313,6 +326,7 @@ newChatButton.addEventListener('click', nameNewChat)
 
 
 // Code to initialize page correctly
+const apiHost = 'localhost'; // It runs on the browser
 selectMode('RAG');
 loadPage();
 button.disabled = input.value.trim() === '';

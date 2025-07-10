@@ -10,15 +10,9 @@ from RAG import *
 
 import json
 
-# Only use in local version
-from dotenv import load_dotenv
-
-load_dotenv('../settings.env')  
-load_dotenv('../secrets.env')
-
 ## Load enviroment variables
 MODE = os.getenv('MODE')
-DB_PASS = os.getenv('DB_PASSWORD')
+DB_PASS = 'REDIS_PASSWORD_2025'
 MODEL_EMBEDDING = os.getenv('EMBEDDINGS')
 MODEL = os.getenv('MODEL')
 DIMENSION = os.getenv('DIMENSION')
@@ -42,6 +36,7 @@ elif MODE != 'Local':
 
 ## Create conexion to db and create index to search embeddings
 REDIS_DB = redis.Redis(host='localhost', port=6379, password=DB_PASS)
+
 INDICE_REDIS = 'knn'
 if INDICE_REDIS.encode() not in REDIS_DB.execute_command("FT._LIST"):
     REDIS_DB.execute_command(
@@ -56,7 +51,7 @@ if INDICE_REDIS.encode() not in REDIS_DB.execute_command("FT._LIST"):
     """
     )
 else:
-    print('Ya existe')
+    print('Alredy exists')
 
 
 #### CREATE API backend ####
@@ -253,4 +248,4 @@ def static_files(path):
     return send_from_directory(app.static_folder, "../Frontend/" + path)
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=13001)
+    app.run(host='localhost', port=13001)

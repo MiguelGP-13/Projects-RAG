@@ -23,7 +23,8 @@
 }
 
 
-.chat-space p {
+.chat-space p,
+.chat-space div.from-ai {
 	border-radius: 1.15rem;
 	line-height: 1.25;
 	max-width: 75%;
@@ -33,7 +34,9 @@
 }
 
 .chat-space p::before,
-.chat-space p::after {
+.chat-space p::after,
+.chat-space div::before,
+.chat-space div::after {
 	bottom: -0.1rem;
 	content: "";
 	height: 1rem;
@@ -66,14 +69,14 @@ div.from-ai {
 	align-items: flex-start;
 	background-color: #e5e5ea;
 	color: #000;
-	border-bottom-left-radius: 2px;
+	border-bottom-left-radius: 0px;
   	overflow-wrap: break-word;
 }
 
 div.from-ai:before {
-	border-bottom-right-radius: 0.8rem 0.7rem;
-	border-left: 1rem solid #e5e5ea;
-	left: -0.35rem;
+	border-bottom-right-radius: 0.36rem 0.7rem;
+	border-left: 1.25rem solid #e5e5ea;
+	left: -0.32rem;
 	transform: translate(0, -0.1rem);
 }
 

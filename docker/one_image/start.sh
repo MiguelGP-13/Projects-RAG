@@ -1,14 +1,20 @@
 #!/bin/bash
 
 echo "→ Starting Redis..."
-redis-server /app/redis.conf &
+redis-server $REDIS_ARGS &
 
-# Esperar a que Redis esté listo (puerto 6379)
+# Waiting for Redis (puerto 6379)
 echo "→ Waiting for Redis..."
-until redis-cli -a "$DB_PASSWORD" ping | grep -q PONG; do
-  sleep 0.5
+until redis-cli -a "REDIS_PASSWORD_2025" ping | grep -q PONG; do
+  sleep 2
 done
 echo "✔ Redis up."
+
+# Show current ACL configuration
+echo "→ Current ACL users and permissions:"
+redis-cli -a "REDIS_PASSWORD_2025" ACL LIST
+
+echo "new"
 
 echo "→ Starting backend Python..."
 python3 main.py

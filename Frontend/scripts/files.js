@@ -24,7 +24,7 @@ function hideSender() { // Hides the send form and changes colour to normal
 }
 
 function getFiles () {
-  fetch('http://127.0.0.3:13001/files', {
+  fetch('http://' + apiHost + ':13001/files', {
     method: 'GET'}).then(response => response.json())
     .then(data => { // Generates html from the files available
       if (data.files.length === 0) {
@@ -63,7 +63,7 @@ function uploadFiles(event) {
       formData.append("files[]", selectedFiles[i]);
   }
   // Send message to python backend with FormData
-  fetch('http://127.0.0.3:13001/upload', {
+  fetch('http://' + apiHost + ':13001/upload', {
       method: 'POST',
       body: formData // Send the files directly
   }).then(response => response.json())
@@ -82,7 +82,7 @@ function uploadFiles(event) {
 function deleteFile (event) {
   console.log('deleting')
   const pdfName = event.target.getAttribute('pdf')
-  fetch('http://127.0.0.3:13001/remove_doc', {
+  fetch('http://' + apiHost + ':13001/remove_doc', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -117,5 +117,6 @@ sendButton.addEventListener("click", uploadFiles);
 
 
 // Initializing code
+const apiHost = 'localhost';
 hideSender();
 getFiles();

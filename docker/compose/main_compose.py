@@ -50,7 +50,7 @@ if INDICE_REDIS.encode() not in REDIS_DB.execute_command("FT._LIST"):
     """
     )
 else:
-    print('Ya existe')
+    print('Alredy exists')
 
 
 #### CREATE API backend ####
@@ -237,4 +237,4 @@ def deleteChat(name):
     return jsonify({'success':True, 'deleted': name + '.json'})
 
 if __name__ == '__main__':
-    app.run(host='localhost', port=13001)
+    app.run(host="0.0.0.0", port=13001)

@@ -11,8 +11,13 @@ RUN apt-get update && apt-get install -y \
 COPY docker/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy your app
-WORKDIR /app
-COPY Backend/RAG.py RAG.py
-COPY docker/main_docker.py main.py
+# Copy the app
+COPY Backend/RAG.py /app/Backend/RAG.py
+COPY Frontend /app/Frontend
+COPY docker/compose/main_compose.py /app/Backend/main.py
+
+EXPOSE 13001
+
+WORKDIR /app/Backend
+RUN mkdir documents chats
 CMD ["python", "-u", "main.py"]
