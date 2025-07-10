@@ -31,6 +31,10 @@
     align-items: top;
 }
 
+.new-chat .input p {
+    font-size: 11px;
+}
+
 .send-new-chat {
     background-color: #ffeccc;
     color:  #895200;

@@ -1,19 +1,19 @@
 import redis
 import os
 import warnings
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 import json
 from mistralai import Mistral
 # from huggingface_hub import InferenceClient
-from RAG import *
+from RAG_windows import *
 
 import json
 
 from dotenv import load_dotenv
 
-load_dotenv('../settings.env')  
-load_dotenv('../secrets.env')
+load_dotenv(resource_path("settings.env"))
+load_dotenv(resource_path("secrets.env"))
 
 ## Load enviroment variables
 MODE = os.getenv('MODE')
@@ -23,8 +23,9 @@ MODEL = os.getenv('MODEL')
 DIMENSION = os.getenv('DIMENSION')
 CHUNK_SIZE = int(os.getenv('CHUNK_SIZE'))
 CONTEXT_SIZE = os.getenv('CONTEXT_SIZE')
-DOCUMENT_FOLDER = os.getenv('DOCUMENT_FOLDER')
-CHATS_FOLDER = os.getenv('CHATS_FOLDER')
+
+CHATS_FOLDER = resource_path("chats")
+DOCUMENT_FOLDER = resource_path("documents")
 actual_chat = None
 
 if MODE == 'Mistral':
@@ -67,7 +68,7 @@ def embedd_pdf(pdfs):
     
     return jsonify({'success':True, "pdfs_created":pdfs, "number_of_chunks": f"{n_chunks} new chunks were created"})
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder=resource_path("frontend"))
 CORS(app) 
 
 # Load all documents embedded to the database
@@ -240,6 +241,18 @@ def deleteChat(name):
         return jsonify({'success':False, "error_code":105, 'description':f"Chat {name} doesn't exist."})
     os.remove(CHATS_FOLDER + '/' + name + '.json')
     return jsonify({'success':True, 'deleted': name + '.json'})
+
+
+@app.route("/")
+def index():
+    # Sirve main.html como página principal
+    return send_from_directory(app.static_folder, "main.html")
+
+@app.route("/<path:path>")
+def static_files(path):
+    # Sirve archivos estáticos como scripts, css, imágenes…
+    return send_from_directory(app.static_folder, path)
+
 
 if __name__ == '__main__':
     app.run(host='127.0.0.3', port=13001)

@@ -26,49 +26,34 @@
 			<div class="content">
 				<div class="navbar">
 					<p class="navbar-titles">Modes</p>
-					<div class="title-left" id="chat">
-						<img class="logo" src="images/logo_empty.png">
+					<button class="title-left js-title-left" id="chat">
+						<img class="logo" src="images/robot.png">
 						<p>Chat</p>
-					</div>
-					<div class="title-left" id="RAG">
-						<img class="logo" src="images/logo_empty.png">
+					</button>
+					<button class="title-left js-title-left" id="RAG">
+						<img class="logo" src="images/robot_docs.png">
 						<p>RAG</p>
-					</div>
-					<div class="title-left" id="questionnaire">
-						<img class="logo" src="images/logo_empty.png">
+					</button>
+					<button class="title-left js-title-left" id="questionnaire">
+						<img class="logo" src="images/questionnaire.png">
 						<p>Questionnaire</p>
-					</div>
+					</button>
 					<hr class="custom-line">
-					<p class="navbar-titles">Chats</p>
+					<div class="chats-title">
+						<p class="navbar-titles">Chats</p>
+						<button class="new-chat-button js-new-chat-button"><img class="plus-logo" src="images/plus_icon.png"></button>
+					</div>
 					<div class="open-chats">
-						<button class="chat">
-							<p>Abcedegergerete</p> <!--Max characters: 15-->
-							<img src="images/closedBin.png" class="delete-chat">
-						</button>
 					</div>
 					
 					<button class="signature" onclick="window.open('https://github.com/MiguelGP-13', '_blank')">MGP</button>
 				</div>
 				<main class="chat-with-ai">
 					<div class="chat-space js-chat-space">
-						<div class="text-container-ai">
-							<img class="logo-ai" src="images/robot.png">
-							<p class="from-ai">It was loud. We just laid there and said &ldquo;is this an earthquake? I think this is an earthquake.&rdquo;</p>
-						</div>
-						<div class="references"><p>References: [,]</p></div>
-						<div class="text-container-ai">
-							<img class="logo-ai" src="images/robot.png">
-							<p class="from-ai">It was loud. We just laid there and said &ldquo;is this an earthquake? I think this is an earthquake.&rdquo;</p>
-						</div>
-						<div class="text-container-user">
-							<p class="from-user">Like is this an earthquake just go back to sleep</p>
-							<img class="logo-ai" src="images/user.png">
-						</div>
-						
 					</div>   
 					<div class="input-prompt">
-						<textarea class="input" id="js-input" placeholder="Write your question"></textarea>
-						<button class="send-button" id="js-send-button"><img class="logo" src="images/send.png"></button>
+						<textarea class="input js-input" placeholder="Write your question"></textarea>
+						<button class="send-button js-send-button"><img class="logo" src="images/send.png"></button>
 					</div>
 				</main>
 				<div class ="footer">
@@ -79,19 +64,6 @@
 			</footer>
 		</div>
 		<div class="popup-container">
-			<div class="popup">
-				<div class="new-chat">
-					<h1>Name the new chat:</h1>
-					<div class="input">
-						<div>
-							<input maxlength="15" placeholder="New name">
-							<p>Maximum 15 characters</p>
-						</div>
-						<button class="send-new-chat js-send-new-chat">Send</button>
-					</div>
-					<button class="exit js-exit"><img class="closeImg" src="images/close.png"></button>
-				</div>
-			</div>
 		</div>
 	</body>
 	<script src="scripts/main.js"></script>

@@ -12,9 +12,25 @@
 	padding-left: 5px;
 }
 
-.navbar .title-left:hover {
+
+.navbar .title-left {
+	cursor: pointer;
+	background-color: #f3f8fe;
+	border-width: 0px;
+}
+.navbar .title-left p {
+	cursor: pointer;
+}
+
+.navbar .title-left:hover,
+.navbar .title-left.active {
 	background-color: #d3d7e3;
 }
+
+.navbar .title-left:disabled {
+	color: black;
+}
+
 
 .navbar-titles {
 	text-align: center;
@@ -29,16 +45,42 @@
 	border: none;
 }
 
+.chats-title {
+	display:flex;
+	justify-content: space-between;
+	align-items: center;
+}
+
+.chats-title .navbar-titles {
+	padding-left: 5px;
+	margin: 5px;
+	margin-bottom: 10px;
+}
+
+.new-chat-button {
+	width: 25px;
+	height: 25px;
+	background-color: #f3f8fe;
+	border-width: 0px;
+	margin-right: 10px;
+	cursor: pointer;
+}
+
+.plus-logo {
+	width: 20px;
+	height: 20px;
+}
+
 .open-chats {
 	display: flex;
-	flex-direction: column;     /* or 'row' depending on layout */
-	height: 45%;              /* fixed height or max-height */
-	overflow-y: auto;           /* enables vertical scrolling */
-	overflow-x: hidden;         /* prevents horizontal overflow */
+	flex-direction: column;     
+	height: 45%;              
+	overflow-y: auto;          
+	overflow-x: hidden;         
 	border: 1px solid #ccc;
 }
 
-.chat {
+.open-chats .chat {
 	display:flex;
 	justify-content: space-between;
 	align-items: center;
@@ -47,10 +89,17 @@
 	background-color: #f2faff;
 	cursor: pointer;
 }
-.chat p {
+.open-chats .chat p {
 	margin: 6px;
+	cursor: pointer;
 }
 
-.chat:hover {
+.open-chats .chat:hover,
+.open-chats .chat.active {
 	background-color: #ffeefd;
+}
+
+
+.open-chats .chat:disabled {
+	color: black;
 }

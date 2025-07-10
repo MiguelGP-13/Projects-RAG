@@ -7,6 +7,12 @@ import markdown
 import os
 from redis.commands.search.query import Query
 
+import sys
+
+def resource_path(relative_path):
+    """Obtains path inside the .exe"""
+    base_path = getattr(sys, '_MEIPASS', os.path.abspath("."))
+    return os.path.join(base_path, relative_path)
 
 
 CHATS_FOLDER = os.getenv('CHATS_FOLDER')

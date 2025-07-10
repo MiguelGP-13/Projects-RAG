@@ -10,11 +10,6 @@ from RAG import *
 
 import json
 
-from dotenv import load_dotenv
-
-load_dotenv('../settings.env')  
-load_dotenv('../secrets.env')
-
 ## Load enviroment variables
 MODE = os.getenv('MODE')
 DB_PASS = os.getenv('DB_PASSWORD')
@@ -40,7 +35,7 @@ elif MODE != 'Local':
 
 
 ## Create conexion to db and create index to search embeddings
-REDIS_DB = redis.Redis(host='localhost', port=6379, password=DB_PASS)
+REDIS_DB = redis.Redis(host='redis', port=6379, password=DB_PASS)
 INDICE_REDIS = 'knn'
 if INDICE_REDIS.encode() not in REDIS_DB.execute_command("FT._LIST"):
     REDIS_DB.execute_command(
@@ -242,4 +237,4 @@ def deleteChat(name):
     return jsonify({'success':True, 'deleted': name + '.json'})
 
 if __name__ == '__main__':
-    app.run(host='127.0.0.3', port=13001)
+    app.run(host='localhost', port=13001)

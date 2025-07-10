@@ -1,7 +1,18 @@
 FROM python:3.12-slim
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    libffi-dev \
+    libssl-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Python packages
+COPY docker/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy your app
 WORKDIR /app
-COPY requirements.txt .
-RUN pip install -r requirements.txt
-COPY utils.py utils.py
-COPY main.py main.py
+COPY Backend/RAG.py RAG.py
+COPY docker/main_docker.py main.py
 CMD ["python", "-u", "main.py"]

@@ -7,7 +7,7 @@ services:
     enviroment:
       - REDIS_ARGS= "--requirepass ${DB_PASSWORD}"
     env_file:
-      - .env.secrets
+      - secrets.env
     volumes:
       - ./data:/data
     networks:
@@ -24,8 +24,8 @@ services:
     volumes:
       - ${DOCUMENT_FOLDER}:/app/documentos
     env_file:
-      - .env.settigns
-      - .env.secrets
+      - settigns.env
+      - secrets.env
     networks:
       - RAG_network
   webui:

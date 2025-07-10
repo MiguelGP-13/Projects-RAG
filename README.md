@@ -38,6 +38,12 @@ files.html: Page to upload files for the RAG to use.
 
 105. The conversation you are trying to find do not exist
 
+106. Conversation with that name alredy exists
+
+107. Conversation name can't have no dots (.)
+
+108. Conversation name can't start with a number
+
 ##  Launch Redis DB:
 docker run -d --name redis-stack -p 6379:6379 -p 8361:8001 -e REDIS_ARGS="--requirepass `password`" redis/redis-stack:latest
 

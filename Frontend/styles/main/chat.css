@@ -62,21 +62,22 @@ p.from-user::after {
 	width: 10px;
 }
 
-p.from-ai {
+div.from-ai {
 	align-items: flex-start;
 	background-color: #e5e5ea;
 	color: #000;
 	border-bottom-left-radius: 2px;
+  	overflow-wrap: break-word;
 }
 
-p.from-ai:before {
+div.from-ai:before {
 	border-bottom-right-radius: 0.8rem 0.7rem;
 	border-left: 1rem solid #e5e5ea;
 	left: -0.35rem;
 	transform: translate(0, -0.1rem);
 }
 
-p.from-ai::after {
+div.from-ai::after {
 	background-color: #a094a9;
 	border-bottom-right-radius: 0.5rem;
 	left: 20px;
