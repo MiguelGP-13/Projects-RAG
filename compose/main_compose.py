@@ -1,7 +1,7 @@
 import redis
 import os
 import warnings
-from flask import Flask, jsonify, request, send_from_directory
+from flask import Flask, jsonify, request
 from flask_cors import CORS
 import json
 from mistralai import Mistral
@@ -9,11 +9,6 @@ from mistralai import Mistral
 from RAG import *
 
 import json
-
-from dotenv import load_dotenv
-
-load_dotenv(resource_path("settings.env"))
-load_dotenv(resource_path("secrets.env"))
 
 ## Load enviroment variables
 MODE = os.getenv('MODE')
@@ -23,10 +18,13 @@ MODEL = os.getenv('MODEL')
 DIMENSION = os.getenv('DIMENSION')
 CHUNK_SIZE = int(os.getenv('CHUNK_SIZE'))
 CONTEXT_SIZE = os.getenv('CONTEXT_SIZE')
-
-CHATS_FOLDER = resource_path("chats")
-DOCUMENT_FOLDER = resource_path("documents")
+DOCUMENT_FOLDER = os.getenv('DOCUMENT_FOLDER')
+CHATS_FOLDER = os.getenv('CHATS_FOLDER')
 actual_chat = None
+
+if len(os.listdir('/app/Backend/files')) == 0:
+    os.mkdir('/app/Backend/files/chats')
+    os.mkdir('/app/Backend/files/documents')
 
 if MODE == 'Mistral':
     MODEL = Mistral(api_key=os.getenv('API_MISTRAL'))
@@ -41,7 +39,7 @@ elif MODE != 'Local':
 
 
 ## Create conexion to db and create index to search embeddings
-REDIS_DB = redis.Redis(host='localhost', port=6379, password=DB_PASS)
+REDIS_DB = redis.Redis(host='redis', port=6379, password=DB_PASS)
 INDICE_REDIS = 'knn'
 if INDICE_REDIS.encode() not in REDIS_DB.execute_command("FT._LIST"):
     REDIS_DB.execute_command(
@@ -56,7 +54,7 @@ if INDICE_REDIS.encode() not in REDIS_DB.execute_command("FT._LIST"):
     """
     )
 else:
-    print('Ya existe')
+    print('Alredy exists')
 
 
 #### CREATE API backend ####
@@ -68,7 +66,7 @@ def embedd_pdf(pdfs):
     
     return jsonify({'success':True, "pdfs_created":pdfs, "number_of_chunks": f"{n_chunks} new chunks were created"})
 
-app = Flask(__name__, static_folder=resource_path("frontend"))
+app = Flask(__name__)
 CORS(app) 
 
 # Load all documents embedded to the database
@@ -242,17 +240,5 @@ def deleteChat(name):
     os.remove(CHATS_FOLDER + '/' + name + '.json')
     return jsonify({'success':True, 'deleted': name + '.json'})
 
-
-@app.route("/")
-def index():
-    # Sirve main.html como página principal
-    return send_from_directory(app.static_folder, "main.html")
-
-@app.route("/<path:path>")
-def static_files(path):
-    # Sirve archivos estáticos como scripts, css, imágenes…
-    return send_from_directory(app.static_folder, path)
-
-
 if __name__ == '__main__':
-    app.run(host='127.0.0.3', port=13001)
+    app.run(host="0.0.0.0", port=13001)
