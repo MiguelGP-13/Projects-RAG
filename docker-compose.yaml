@@ -21,7 +21,7 @@ services:
       - "13001:13001"
     env_file:
       - settings.env
-      - ../../secrets.env
+      - .env
     networks:
       - RAG_network
     

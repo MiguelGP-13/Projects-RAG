@@ -1,51 +1,29 @@
-# Projects-RAG
-Created a RAG using 2 options:
-- Mistral (online)
-- Ollama (local)
-It uses a python backend with an html/js/css frontend to interact with it.
+# Compose
+## Prerequisites
+Have Docker desktop downloaded.
 
-## Frontend:
-main.html: Chat where you ask questions about the documents uploaded.
+If you don't hav it, you can download it [here](https://docs.docker.com/get-started/introduction/get-docker-desktop/).
 
-files.html: Page to upload files for the RAG to use.
+## Quick start
+Download the docker-compose and create a `.env` (called .env) file in the same directory with the following variables:
+```env
+DB_PASSWORD=<REDIS_PASSWORD>
+API_MISTRAL=<Mistral API>
+```
+To get a Mistral API:
+1. Create an account or login if you alredy have one at [Mistral](https://auth.mistral.ai/ui/login?flow=da5da21c-a399-493c-9a19-61ee7dd3319c).
+2. Go to the [api key](https://console.mistral.ai/api-keys) section and click on `Create a new Key`.
+3. Copy the key and put it in the .env file.
 
-## API endpoints:
-### 1. POST /query 
-*Payload*: {"prompt":`QUERY`}
-*Answer*: 
+For the `DB_PASSWORD`, you can use any password you want.
 
-### 2. POST /update 
-*Payload*: {"pdfs": [`PDF NAME 1`, `PDF NAME 2`,...], "force":true, "rename":}
-*Answer*: 
+To run the app, 
+1. Open Docker Desktop go to this folder and open a terminal. Write
+```bash
+docker compose up
+```
+2. Then you have to open `http://localhost:1380/main.html` in your favourite browser and enjoy.
 
-### 3. POST /add_doc 
-*Payload*: {}
-*Answer*: 
- 
-## Error codes:
-
-0. Unexpected error
-
-100. A compulsary value wasn't found in the json provided with the POST
-
-101. File trying to add alredy exists
-
-102. The path of the file provided doesn't exists
-
-103. Error ocurred while fetching files
-
-104. No files arrived the backend
-
-105. The conversation you are trying to find do not exist
-
-106. Conversation with that name alredy exists
-
-107. Conversation name can't have no dots (.)
-
-108. Conversation name can't start with a number
-
-##  Launch Redis DB:
-docker run -d --name redis-stack -p 6379:6379 -p 8361:8001 -e REDIS_ARGS="--requirepass `password`" redis/redis-stack:latest
-
-
-
+Or run quick_start.bat
+## Code 
+This branch has the necessary code to deploy the app
