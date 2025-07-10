@@ -7,8 +7,6 @@ services:
       - "8361:8001" # Redis Insights
     environment:
       - REDIS_ARGS= --requirepass ${DB_PASSWORD}
-    env_file:
-      - ../../secrets.env
     volumes:
       - ./data:/data
     networks:

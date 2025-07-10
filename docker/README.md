@@ -1,6 +1,11 @@
 ## Compose
-It works correctly, you just need to do the docker compose from the folder /docker/compose:
+It works correctly, except for using the env variable from secrets.env.
+2 options:
+1. Change the name to .env and put it in the docker/compose folder
+2. export the env variabe
+
 ```bash
+export DB_PASSWORD=<Your password>
 cd docker/compose
 docker compose up
 ```
