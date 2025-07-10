@@ -4,7 +4,6 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 docker desktop start
-sleep 3
 
 # 📦 Run Docker Compose
 echo "Starting Docker Compose..."

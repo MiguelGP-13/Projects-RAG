@@ -4,7 +4,6 @@ SET SCRIPT_DIR=%~dp0
 REM 🚀 Start Docker Desktop
 echo Starting Docker Desktop...
 docker desktop start
-timeout /t 3 > nul
 
 REM 📦 Run Docker Compose
 echo Running Docker Compose...
