@@ -1,7 +1,7 @@
 import redis
 import os
 import warnings
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 import json
 from mistralai import Mistral
@@ -10,10 +10,11 @@ from RAG import *
 
 import json
 
-from dotenv import load_dotenv
+# Only use in local version
+# from dotenv import load_dotenv
 
-load_dotenv('../settings.env')  
-load_dotenv('../secrets.env')
+# load_dotenv('../settings.env')  
+# load_dotenv('../secrets.env')
 
 ## Load enviroment variables
 MODE = os.getenv('MODE')
@@ -240,6 +241,16 @@ def deleteChat(name):
         return jsonify({'success':False, "error_code":105, 'description':f"Chat {name} doesn't exist."})
     os.remove(CHATS_FOLDER + '/' + name + '.json')
     return jsonify({'success':True, 'deleted': name + '.json'})
+
+@app.route("/")
+def index():
+    # Sirve main.html como página principal
+    return send_from_directory(app.static_folder, "../Frontend/main.html")
+
+@app.route("/<path:path>")
+def static_files(path):
+    # Sirve archivos estáticos como scripts, css, imágenes…
+    return send_from_directory(app.static_folder, "../Frontend/" + path)
 
 if __name__ == '__main__':
     app.run(host='127.0.0.3', port=13001)

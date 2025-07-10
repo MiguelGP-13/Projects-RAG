@@ -18,12 +18,18 @@ with open("redis.conf", "w") as final_conf:
 
 
 def resource_path(relative_path):
-    base_path = getattr(sys, '_MEIPASS', os.path.abspath("."))
+    """Obtains files path for the .exe"""
+    if getattr(sys, 'frozen', False):
+        # Si está compilado, usa la carpeta del ejecutable
+        base_path = os.path.dirname(sys.executable)
+    else:
+        # Si está en modo script, usa la carpeta del archivo actual
+        base_path = os.path.dirname(os.path.abspath(__file__))
     return os.path.join(base_path, relative_path)
 
 def start_backend():
     subprocess.Popen([resource_path("redis-server.exe"), resource_path("redis.conf")])
-    subprocess.Popen(["python", resource_path("backend/main.py")])
+    subprocess.Popen(["python", resource_path("main.py")])
 
 if __name__ == "__main__":
     threading.Thread(target=start_backend).start()

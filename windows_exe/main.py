@@ -6,7 +6,7 @@ from flask_cors import CORS
 import json
 from mistralai import Mistral
 # from huggingface_hub import InferenceClient
-from RAG_windows import *
+from RAG import *
 
 import json
 

@@ -10,10 +10,14 @@ from redis.commands.search.query import Query
 import sys
 
 def resource_path(relative_path):
-    """Obtains path inside the .exe"""
-    base_path = getattr(sys, '_MEIPASS', os.path.abspath("."))
+    """Obtains files path for the .exe"""
+    if getattr(sys, 'frozen', False):
+        # Si está compilado, usa la carpeta del ejecutable
+        base_path = os.path.dirname(sys.executable)
+    else:
+        # Si está en modo script, usa la carpeta del archivo actual
+        base_path = os.path.dirname(os.path.abspath(__file__))
     return os.path.join(base_path, relative_path)
-
 
 CHATS_FOLDER = os.getenv('CHATS_FOLDER')
 
