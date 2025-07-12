@@ -1,9 +1,0 @@
-services:
-  - type: web
-    name: redis-stack
-    runtime: docker
-    dockerfilePath: ./Dockerfile
-    envVars:
-      - key: REDIS_PASSWORD
-    plan: starter
-    autoDeploy: true
