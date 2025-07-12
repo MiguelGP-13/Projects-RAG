@@ -7,5 +7,3 @@ services:
       - key: REDIS_PASSWORD
     plan: starter
     autoDeploy: true
-    ports:
-      - port: 6379
