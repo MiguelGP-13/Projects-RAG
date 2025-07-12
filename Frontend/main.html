@@ -12,59 +12,63 @@
 	</head>
 
 	<body>
-		<div class="Wrapper">
-			<header class="header">
-				<div class="title-left">
-					<img class="logo" src="images/logo.png">
-					<p>Docuchat</p>
-				</div>
-				<div class="files-button" onclick="window.location.href='files.html'">
-					<p class="files-text">Files</p>
-					<p class="files-arrow"><img class="logo" src = "images/files.png"></p>
-				</div>
-			</header>
-			<div class="content">
-				<div class="navbar">
-					<p class="navbar-titles">Modes</p>
-					<button class="title-left js-title-left" id="chat">
-						<img class="logo" src="images/robot.png">
-						<p>Chat</p>
-					</button>
-					<button class="title-left js-title-left" id="RAG">
-						<img class="logo" src="images/robot_docs.png">
-						<p>RAG</p>
-					</button>
-					<button class="title-left js-title-left" id="questionnaire">
-						<img class="logo" src="images/questionnaire.png">
-						<p>Questionnaire</p>
-					</button>
-					<hr class="custom-line">
-					<div class="chats-title">
-						<p class="navbar-titles">Chats</p>
-						<button class="new-chat-button js-new-chat-button"><img class="plus-logo" src="images/plus_icon.png"></button>
+		<div id="status-loading">Waiting for backend to wake up...</div>
+		<div id="content-loading" style="display: none;">
+			<div class="Wrapper">
+				<header class="header">
+					<div class="title-left">
+						<img class="logo" src="images/logo.png">
+						<p>Docuchat</p>
 					</div>
-					<div class="open-chats">
+					<div class="files-button" onclick="window.location.href='files.html'">
+						<p class="files-text">Files</p>
+						<p class="files-arrow"><img class="logo" src = "images/files.png"></p>
 					</div>
-					
-					<button class="signature" onclick="window.open('https://github.com/MiguelGP-13', '_blank')">MGP</button>
-				</div>
-				<main class="chat-with-ai">
-					<div class="chat-space js-chat-space">
-					</div>   
-					<div class="input-prompt">
-						<textarea class="input js-input" placeholder="Write your question"></textarea>
-						<button class="send-button js-send-button"><img class="logo" src="images/send.png"></button>
+				</header>
+				<div class="content">
+					<div class="navbar">
+						<p class="navbar-titles">Modes</p>
+						<button class="title-left js-title-left" id="chat">
+							<img class="logo" src="images/robot.png">
+							<p>Chat</p>
+						</button>
+						<button class="title-left js-title-left" id="RAG">
+							<img class="logo" src="images/robot_docs.png">
+							<p>RAG</p>
+						</button>
+						<button class="title-left js-title-left" id="questionnaire">
+							<img class="logo" src="images/questionnaire.png">
+							<p>Questionnaire</p>
+						</button>
+						<hr class="custom-line">
+						<div class="chats-title">
+							<p class="navbar-titles">Chats</p>
+							<button class="new-chat-button js-new-chat-button"><img class="plus-logo" src="images/plus_icon.png"></button>
+						</div>
+						<div class="open-chats">
+						</div>
+						
+						<button class="signature" onclick="window.open('https://github.com/MiguelGP-13', '_blank')">MGP</button>
 					</div>
-				</main>
-				<div class ="footer">
+					<main class="chat-with-ai">
+						<div class="chat-space js-chat-space">
+						</div>   
+						<div class="input-prompt">
+							<textarea class="input js-input" placeholder="Write your question"></textarea>
+							<button class="send-button js-send-button"><img class="logo" src="images/send.png"></button>
+						</div>
+					</main>
+					<div class ="footer">
 
+					</div>
 				</div>
+				<footer class="footer">
+				</footer>
 			</div>
-			<footer class="footer">
-			</footer>
-		</div>
-		<div class="popup-container">
+			<div class="popup-container">
+			</div>
 		</div>
 	</body>
+	<script src="scripts/wakeUp.js"></script>
 	<script src="scripts/main.js"></script>
 </html>

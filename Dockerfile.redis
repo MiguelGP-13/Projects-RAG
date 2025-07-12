@@ -1,0 +1,5 @@
+FROM redis/redis-stack:latest
+
+EXPOSE 6379
+
+CMD [ "sh", "-c", "exec redis-server --bind 0.0.0.0 --requirepass \"$REDIS_PASSWORD\"" ]

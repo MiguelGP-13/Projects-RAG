@@ -39,7 +39,7 @@ elif MODE != 'Local':
 
 
 ## Create conexion to db and create index to search embeddings
-REDIS_DB = redis.Redis(host='redis', port=6379, password=DB_PASS)
+REDIS_DB = redis.Redis(host='https://rag-redis.onrender.com', port=6379, password=DB_PASS)
 INDICE_REDIS = 'knn'
 if INDICE_REDIS.encode() not in REDIS_DB.execute_command("FT._LIST"):
     REDIS_DB.execute_command(
@@ -239,6 +239,16 @@ def deleteChat(name):
         return jsonify({'success':False, "error_code":105, 'description':f"Chat {name} doesn't exist."})
     os.remove(CHATS_FOLDER + '/' + name + '.json')
     return jsonify({'success':True, 'deleted': name + '.json'})
+
+@app.route('/health')
+def health():
+    try:
+        REDIS_DB.ping()  # throws if Redis down
+        return "OK", 200
+    except redis.exceptions.ConnectionError:
+        return "Redis not ready", 500
+
+
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=13001)
