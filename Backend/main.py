@@ -2,11 +2,13 @@ import redis
 import os
 import warnings
 from hashlib import md5
+from datetime import datetime
 from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 import json
 from mistralai import Mistral
-# from huggingface_hub import InferenceClient
+from huggingface_hub import InferenceClient
+from sentence_transformers import SentenceTransformer
 from RAG import *
 
 import json
@@ -36,10 +38,10 @@ if MODE == 'Mistral':
     MODEL = Mistral(api_key=os.getenv('API_MISTRAL'))
     MODEL_EMBEDDING = MODEL
     DIMENSION = 1024
-# if MODE == 'HuggingFace':
-#     MODEL = InferenceClient(api_key=os.getenv('API_HUGGING_FACE'))
-#     MODEL_EMBEDDING = MODEL
-#     DIMENSION = 1024
+if MODE == 'HuggingFace':
+    MODEL = InferenceClient(token=os.getenv('API_HUGGINGFACE'))
+    MODEL_EMBEDDING = SentenceTransformer("intfloat/multilingual-e5-base")
+    DIMENSION = 768
 elif MODE != 'Local':
     raise Exception('MODE enviroment variable supported types are: [LOCAL, MISTRAL]')
 
@@ -63,7 +65,7 @@ else:
     print('Ya existe')
 
 
-#### CREATE API backend ####
+#### API backend ####
 def embedd_pdf(pdfs):
     print(pdfs)
     n_chunks = 0
@@ -211,8 +213,11 @@ def get_chats():
             # with open(CHATS_FOLDER + '/' + path, 'r') as chatFile: Just lists the chat names
             hash = path.split('.')[0]
             with open(CHATS_FOLDER + '/' + path, 'r') as f:
-                realName = json.load(f)['name']
-            conversations.append({"realName":realName, "id": hash})#, "conversation":json.load(chatFile)}) # Name, conversation
+                conv = json.load(f)
+                realName = conv['name']
+                creationDate = conv['creationDate']
+            conversations.append({"realName":realName, "id": hash, "creationDate":creationDate})#, "conversation":json.load(chatFile)}) # Name, conversation
+            conversations = sorted(conversations, key=lambda x: x['creationDate'], reverse=False)
         return jsonify({'success':True, 'chats':conversations})
     except Exception as e:
         print('no ha ido')
@@ -242,16 +247,16 @@ def createChat(name):
     elif hash[0] in [str(i) for i in range(10)]: # Name can't start with a number
         return jsonify({'success':False, "error_code":108, 'description':f"Chat {hash} can't start with a number."})
     with open(CHATS_FOLDER + '/' + hash + '.json','w') as f:
-        json.dump({"name": name,"conversation": []}, f) # Creates an empty array for the conversation
+        json.dump({"name": name,"conversation": [], "creationDate": datetime.now().timestamp()}, f) # Creates an empty array for the conversation
     return jsonify({'success':True, "id":hash})
 
-@app.route("/deleteChat/<name>", methods=["POST"])
-def deleteChat(name):
-    name = name.replace(' ','%20') # No spaces in names
-    if name not in [i.split('.')[0] for  i in os.listdir(CHATS_FOLDER)]: # That name alredy exists
-        return jsonify({'success':False, "error_code":105, 'description':f"Chat {name} doesn't exist."})
-    os.remove(CHATS_FOLDER + '/' + name + '.json')
-    return jsonify({'success':True, 'deleted': name + '.json'})
+@app.route("/deleteChat/<id>", methods=["POST"])
+def deleteChat(id):
+    id = id.replace(' ','%20') # No spaces in names
+    if id not in [i.split('.')[0] for  i in os.listdir(CHATS_FOLDER)]: # That name alredy exists
+        return jsonify({'success':False, "error_code":105, 'description':f"Chat {id} doesn't exist."})
+    os.remove(CHATS_FOLDER + '/' + id + '.json')
+    return jsonify({'success':True, 'deleted': id + '.json'})
 
 @app.route("/")
 def index():

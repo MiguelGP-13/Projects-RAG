@@ -74,10 +74,10 @@
 .open-chats {
 	display: flex;
 	flex-direction: column;     
-	height: 45%;              
+	height: 40%;              
 	overflow-y: auto;          
 	overflow-x: hidden;         
-	border: 1px solid #ccc;
+	border: 0px solid #ccc;
 }
 
 .open-chats .chat {

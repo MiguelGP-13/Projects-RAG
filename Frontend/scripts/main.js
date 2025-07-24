@@ -36,27 +36,31 @@ function hidePopup () {
     popup.innerHTML = '';
 }
 
-function createChatSelector (realName, id) {
-    openChats.innerHTML = `
-    <button class="chat" id="${id}">
+function createChatSelector(realName, id) {
+    const button = document.createElement("button");
+    button.classList.add("chat");
+    button.id = id;
+    button.innerHTML = `
         <p>${realName}</p>
-        <img src="images/closedBin.png" class="delete-chat" chat="${id}">
-    </button>` + openChats.innerHTML;
-    // Wait until DOM updates
+        <img src="images/closedBin.png" class="delete-chat" chat="${id}">`;
+    // Insert at the top
+    openChats.insertBefore(button, openChats.firstChild);
     requestAnimationFrame(() => {
-    const deleteButton = document.querySelector(`.delete-chat[chat="${id}"]`)
-    console.log("Button " + document.querySelector(".chat#" + id).getAttribute('id') + " was registered");
-    document.querySelector(`.chat#${id}`).addEventListener('click',(event) => {selectChat(event.currentTarget.getAttribute('id'));})
-    deleteButton.addEventListener('mouseover', () => {
-        deleteButton.src = 'images/openBin.png';
-      });
-    
-    deleteButton.addEventListener('mouseout', () => {
-        deleteButton.src = 'images/closedBin.png';
-      });
-    deleteButton.addEventListener('click',deleteChat);
+        console.log("Button " + button.id + " was registered");
+        button.addEventListener('click', () => {
+            selectChat(id);
+        });
+        const deleteButton = button.querySelector('.delete-chat');
+        deleteButton.addEventListener('mouseover', () => {
+            deleteButton.src = 'images/openBin.png';
+        });
+        deleteButton.addEventListener('mouseout', () => {
+            deleteButton.src = 'images/closedBin.png';
+        });
+        deleteButton.addEventListener('click', deleteChat);
     });
 }
+
 
 function createChat (event) {
     console.log('send new chat clicked: '+ event.target)
@@ -162,6 +166,7 @@ function sendMessage() { // Sends a message to the RAG, and writes the answer
     .then(response => response.json()).catch(() => alert('Backend api not ready, sendMessage'))
     .then(data => {
         if (data.success) {
+            console.log(data);
             // Retrieve the answer and references used by the LLM
             const answer = data.answer;
             const references = data.references;
@@ -236,7 +241,7 @@ function loadConversation (id) {
         console.log(data)
         console.log("Conversation with name " + id + " received: " + data)
         if (data.success) {
-            if (data.chat.length === 0) {
+            if (data.chat.conversation.length === 0) {
                 chatSpace.innerHTML =  `
                     <div class="text-container-ai">
                         <img class="logo-ai" src="images/robot.png">

@@ -100,20 +100,21 @@ def create_embeddings_pag(text, chunk_size, embedder, redis, name, page, mode):
     
     ## API Call to create embeddigns
     print('Creating embeddigns', len(new_chunks))
-    if mode == 'Local':
-        if len(new_chunks) > 0: # Don't call model if we don't have chunks to encode
+    i = -1
+    if len(new_chunks) > 0: # Don't call model if we don't have chunks to encode
+        if mode == 'Local':
             embeddings = ollama.embed(model=embedder, input=[j[1] for j in new_chunks]).embeddings
-    elif mode == 'Mistral':
-        if len(new_chunks) > 0: # Don't call model if we don't have chunks to encode
+        elif mode == 'Mistral':
             embeddings_batch_response = embedder.embeddings.create(
                 model= "mistral-embed", inputs=[j[1] for j in new_chunks])
             embeddings = [k.embedding for k in embeddings_batch_response.data]
-    # elif mode == 'HuggingFace':
-
-    ## We save in the redis db
-    print('Saving')
-    for i, embedding in enumerate(embeddings):
-        redis.hset(new_chunks[i][0], mapping={"embedding":to_blob(np.array(embedding)),"hash":new_chunks[i][2], "referencia":new_chunks[i][1]})
+            embeddings = ollama.embed(model=embedder, input=[j[1] for j in new_chunks]).embeddings
+        elif mode == 'HuggingFace':
+            embeddings = embedder.encode([j[1] for j in new_chunks])
+        ## We save in the redis db
+        print('Saving')
+        for i, embedding in enumerate(embeddings):
+            redis.hset(new_chunks[i][0], mapping={"embedding":to_blob(np.array(embedding)),"hash":new_chunks[i][2], "referencia":new_chunks[i][1]})
     return i + 1
 
 def create_embeddings_pdf(pdf_path: str, chunk_size: int, embedder, redis, mode):
@@ -154,6 +155,8 @@ def query(prompt, model, embedder, redis, search_index, N, mode, actual_chat):
     elif mode == 'Mistral':
             search_embd = embedder.embeddings.create(
                 model= "mistral-embed", inputs=prompt).data[0].embedding
+    elif mode == 'HuggingFace':
+            search_embd = embedder.encode(prompt)
     print(search_embd)
 
     ## Find the N most similar chunks
@@ -188,16 +191,16 @@ def query(prompt, model, embedder, redis, search_index, N, mode, actual_chat):
                 },
             ]
         ).choices[0].message
-    # elif mode == 'HuggingFace':
-    #     answer = model.chat.completions.create(
-    #         model="mistralai/Mistral-7B-Instruct-v0.3",
-    #         messages=[
-    #             {
-    #                 "role": "user",
-    #                 "content": input_message
-    #             }
-    #         ],
-    #     ).choices[0].message
+    elif mode == 'HuggingFace':
+        answer = model.chat.completions.create(
+            model="mistralai/Mistral-7B-Instruct-v0.3",
+            messages=[
+                {
+                    "role": "user",
+                    "content": input_message
+                }
+            ],
+        ).choices[0].message
     print(answer)
     
     ## Convert markdown to html
@@ -230,6 +233,8 @@ def LLMChat(prompt, model, mode, actual_chat):
         answer = ollama.chat(model=model, messages=chat).message
     elif mode == 'Mistral':
         answer = model.chat.complete(model= "mistral-small-latest", messages = chat).choices[0].message
+    elif mode == 'HuggingFace':
+        answer = model.chat.completions.create(model="mistralai/Mistral-7B-Instruct-v0.3", messages= chat).choices[0].message
     print(answer)
     
     ## Convert markdown to html

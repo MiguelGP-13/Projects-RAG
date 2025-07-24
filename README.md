@@ -23,7 +23,8 @@ files.html: Page to upload files for the RAG to use.
 ```
 *Answer*: 
 ```json
-{"success": true, "answer": "LLM answer"}
+Chat: {"success": true, "answer": "LLM answer"}
+RAG: {"success": true, "answer": "LLM answer", "references":Id of context peices, "reference_text":Context pieces text}
 ```
 
 ### 2. POST /remove_doc  
@@ -69,7 +70,7 @@ files.html: Page to upload files for the RAG to use.
 ### 5. GET /files  
 *Answer*:  
 ```json
-{"success": true, "files": ["file1", "file2", "file3"]}
+{"success": true, "files": ["PDF NAME 1", "PDF NAME 2", ...]}
 ```
 
 ### 6. GET /chats  
@@ -80,32 +81,33 @@ files.html: Page to upload files for the RAG to use.
   "chats": [
     {
       "realName": "My Chat",
-      "cleanedName": "My%20Chat"
+      "id": hash,
+      "creationDate": timestamp
     },
     ...
   ]
 }
 ```
 
-### 7. GET /chats/<name>  
+### 7. GET /chats/<id>  
 *Answer*:  
 ```json
 {
   "success": true,
-  "chat": [ conversation saved ]
+  "chat": [ Conversation saved ]
 }
 ```
 
 ### 8. POST /createChat/<name>  
 *Answer*:  
 ```json
-{"success": true, "path": "ChatName.json"}
+{"success": true, "id": hash}
 ```
 
 ### 9. POST /deleteChat/<name>  
 *Answer*:  
 ```json
-{"success": true, "deleted": "ChatName.json"}
+{"success": true, "deleted": "id.json"}
 ```
 
 ### 10. GET /  
@@ -140,4 +142,4 @@ RAG doesn't sends the answer => When reloaded, it appears (loading the chat has 
 
 Alignment problem with references
 
-mistral-medium-2505 maxed, trying mistral-small-latest ## Add an automatic change for that
+When selecting one choice, put ramdom number instead of 0

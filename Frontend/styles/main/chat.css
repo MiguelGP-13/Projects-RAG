@@ -142,6 +142,11 @@ div.from-ai::after {
   }
   
 .references {
-	margin-top: -40px;
+	margin-top: -25px;
 	padding-left: 45px ;
+}
+
+.from-ai p{
+	margin:0px;
+	padding:1px;
 }
