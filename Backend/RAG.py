@@ -11,17 +11,19 @@ from redis.commands.search.query import Query
 
 CHATS_FOLDER = os.getenv('CHATS_FOLDER')
 
-def saveChat(prompt, answer, actual_chat, references=None):
+def saveChat(prompt, answer, actual_chat, mode, references=None):
     try:
         with open(actual_chat, 'r') as f:
-            chat = json.load(f)
+            conv = json.load(f)
+            realName = conv['name']
+            chat = conv['conversation']
     except FileNotFoundError:
         # chat = [] # The conversation is new
         raise FileNotFoundError # Now chats are created manually, so it should exist
     chat.append({"role":"user", "content":prompt}) # Add user prompt
-    chat.append({"role":"assistant", "content":answer, "references":references}) # Add assistant answer
+    chat.append({"role":"assistant", "content":answer, "references":references, "mode": mode}) # Add assistant answer
     with open(actual_chat, 'w') as f:
-        json.dump(chat, f)
+        json.dump({"name":realName, "conversation":chat}, f)
 
     return actual_chat
 
@@ -179,7 +181,7 @@ def query(prompt, model, embedder, redis, search_index, N, mode, actual_chat):
     if mode == 'Local':
         answer = ollama.chat(model=model, messages=[{'role':'user', 'content':input_message}]).message
     elif mode == 'Mistral':
-        answer = model.chat.complete(model= "mistral-medium-2505", messages = [
+        answer = model.chat.complete(model= "mistral-small-latest", messages = [
                 {
                     "role": "user",
                     "content": input_message,
@@ -202,7 +204,7 @@ def query(prompt, model, embedder, redis, search_index, N, mode, actual_chat):
     answer = markdown.markdown(answer.content)
 
     ## Save chat
-    actual_chat = saveChat(prompt, answer, actual_chat, str(reference_list))
+    actual_chat = saveChat(prompt, answer, actual_chat, 'RAG', str(reference_list))
 
     return answer, reference_list, [doc.referencia for doc in context], actual_chat
 
@@ -217,7 +219,7 @@ def LLMChat(prompt, model, mode, actual_chat):
     '''
     # try: 
     with open(actual_chat, 'r') as f:
-        chat = json.load(f)
+        chat = json.load(f)['conversation']
     # except FileNotFoundError:
         # chat = []
         # print('Chat anterior no encontrado')
@@ -227,13 +229,13 @@ def LLMChat(prompt, model, mode, actual_chat):
     if mode == 'Local':
         answer = ollama.chat(model=model, messages=chat).message
     elif mode == 'Mistral':
-        answer = model.chat.complete(model= "mistral-medium-2505", messages = chat).choices[0].message
+        answer = model.chat.complete(model= "mistral-small-latest", messages = chat).choices[0].message
     print(answer)
     
     ## Convert markdown to html
     answer = markdown.markdown(answer.content)
 
     ## Save chat
-    actual_chat = saveChat(prompt, answer, actual_chat)
+    actual_chat = saveChat(prompt, answer, actual_chat, 'chat')
 
     return answer, actual_chat

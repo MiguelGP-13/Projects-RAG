@@ -1,6 +1,7 @@
 import redis
 import os
 import warnings
+from hashlib import md5
 from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 import json
@@ -13,8 +14,11 @@ import json
 # Only use in local version
 from dotenv import load_dotenv
 
-load_dotenv('../settings.env')  
-load_dotenv('../secrets.env')
+load_dotenv('settings.env')  
+load_dotenv('.env')
+print(os.getenv('CHUNK_SIZE'))
+print(os.getenv('MODE'))
+
 
 ## Load enviroment variables
 MODE = os.getenv('MODE')
@@ -101,7 +105,9 @@ def query_database(queryMode):
             return jsonify({'answer':answer, 'references':context, 'reference_text':context_text, 'success':True})
         elif queryMode == "chat":
             answer, actual_chat = LLMChat(prompt, MODEL, MODE, actual_chat)
-            return jsonify({'answer':answer.content, 'success':True})
+            return jsonify({'answer':answer, 'success':True})
+        else:
+            return jsonify({'success':False, "error_code":110, 'description':f"Query mode {queryMode} is not valid"})
     except Exception as e:
         return jsonify({'success':False, "error_code":0, 'description':f"Unexpected error: {e}"})
 
@@ -203,36 +209,41 @@ def get_chats():
         conversations = []
         for path in chats:
             # with open(CHATS_FOLDER + '/' + path, 'r') as chatFile: Just lists the chat names
-            conversations.append({"name":path.split('.')[0].replace('%20',' ')})#, "conversation":json.load(chatFile)}) # Name, conversation
+            hash = path.split('.')[0]
+            with open(CHATS_FOLDER + '/' + path, 'r') as f:
+                realName = json.load(f)['name']
+            conversations.append({"realName":realName, "id": hash})#, "conversation":json.load(chatFile)}) # Name, conversation
         return jsonify({'success':True, 'chats':conversations})
     except Exception as e:
         print('no ha ido')
         return jsonify({'success':False, "error_code":0, 'description':f"Unexpected error ocurred while loading available chats: {e}"})
 
-@app.route("/chats/<name>", methods=['GET'])
-def get_chat(name):
+@app.route("/chats/<id>", methods=['GET'])
+def get_chat(id):
     try:
-        with open(CHATS_FOLDER + '/' + name + '.json', 'r') as chatFile:
+        with open(CHATS_FOLDER + '/' + id + '.json', 'r') as chatFile:
             conversation = json.load(chatFile)
         return jsonify({'success':True, 'chat':conversation})
     except FileNotFoundError:
-        return jsonify({'success':False, "error_code":105, 'description':f"Chat {name} does not exist."})
+        return jsonify({'success':False, "error_code":105, 'description':f"Chat {id} does not exist."})
     except Exception as e:
         print('no ha ido')
-        return jsonify({'success':False, "error_code":0, 'description':f"Unexpected error ocurred while loading chat {name}: {e}"})
+        return jsonify({'success':False, "error_code":0, 'description':f"Unexpected error ocurred while loading chat {id}: {e}"})
 
 @app.route("/createChat/<name>", methods=["POST"])
 def createChat(name):
-    name = name.replace(' ','%20') # No spaces in names
-    if name in [i.split('.')[0] for  i in os.listdir(CHATS_FOLDER)]: # That name alredy exists
-        return jsonify({'success':False, "error_code":106, 'description':f"Chat {name} alredy exist."})
-    elif '.' in name: # Name can't have . in it's name
-        return jsonify({'success':False, "error_code":107, 'description':f"Chat {name} can't have \".\"."})
-    elif name[0] in [str(i) for i in range(10)]: # Name can't start with a number
-        return jsonify({'success':False, "error_code":108, 'description':f"Chat {name} can't start with a number."})
-    with open(CHATS_FOLDER + '/' + name + '.json','w') as f:
-        f.write("[]") # Creates an empty array for the conversation
-    return jsonify({'success':True, 'path': name + '.json'})
+    if not name:
+        return jsonify({'success':False, "error_code":109, 'description':f"{name}: The chat name cannot be empty."})
+    hash = 'h' + md5(name.encode(), usedforsecurity= False).hexdigest() # The name is the hash of the chat's name
+    if hash in [i.split('.')[0] for  i in os.listdir(CHATS_FOLDER)]: # That name alredy exists
+        return jsonify({'success':False, "error_code":106, 'description':f"Chat {hash} alredy exist."})
+    # elif '.' in name: # Name can't have . in it's name
+    #     return jsonify({'success':False, "error_code":107, 'description':f"Chat {name} can't have \".\"."})
+    elif hash[0] in [str(i) for i in range(10)]: # Name can't start with a number
+        return jsonify({'success':False, "error_code":108, 'description':f"Chat {hash} can't start with a number."})
+    with open(CHATS_FOLDER + '/' + hash + '.json','w') as f:
+        json.dump({"name": name,"conversation": []}, f) # Creates an empty array for the conversation
+    return jsonify({'success':True, "id":hash})
 
 @app.route("/deleteChat/<name>", methods=["POST"])
 def deleteChat(name):

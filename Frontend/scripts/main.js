@@ -1,4 +1,13 @@
 // Functions
+function cleanName (text) { // Encode spaces as %20
+    text = text.replace(/\./g, '%2E');
+    return text.replace(/ /g, '%20');
+}
+function returnSpaces (text) { // Unencode spaces previously converted to %20
+    return text.replace(/%20/g, ' ');
+}
+
+
 function nameNewChat (send = false) {
     // Include the HTML to ask for the name of the new chat
     // Include the send attribute
@@ -9,7 +18,6 @@ function nameNewChat (send = false) {
                             <div class="input">
                                 <div>
                                     <input maxlength="15" placeholder="New name", class="js-new-chat-input">
-                                    <p>It can't contain dots [.] and<br> can't start by a number.</p>
                                 </div>
                                 <button class="send-new-chat js-send-new-chat" send="${send}">Send</button>
                             </div>
@@ -24,20 +32,21 @@ function nameNewChat (send = false) {
 }
 
 function hidePopup () {
+    console.log('Hiding popup')
     popup.innerHTML = '';
 }
 
-function createChatSelector (name) {
+function createChatSelector (realName, id) {
     openChats.innerHTML = `
-    <button class="chat" id="${name}">
-        <p>${name}</p>
-        <img src="images/closedBin.png" class="delete-chat" chat="${name}">
+    <button class="chat" id="${id}">
+        <p>${realName}</p>
+        <img src="images/closedBin.png" class="delete-chat" chat="${id}">
     </button>` + openChats.innerHTML;
     // Wait until DOM updates
     requestAnimationFrame(() => {
-    const deleteButton = document.querySelector(`.delete-chat[chat="${name}"]`)
-    console.log("Button " + document.querySelector(".chat#" + name).getAttribute('id') + " was registered");
-    document.querySelector(`.chat#${name}`).addEventListener('click',(event) => {selectChat(event.currentTarget.getAttribute('id'));})
+    const deleteButton = document.querySelector(`.delete-chat[chat="${id}"]`)
+    console.log("Button " + document.querySelector(".chat#" + id).getAttribute('id') + " was registered");
+    document.querySelector(`.chat#${id}`).addEventListener('click',(event) => {selectChat(event.currentTarget.getAttribute('id'));})
     deleteButton.addEventListener('mouseover', () => {
         deleteButton.src = 'images/openBin.png';
       });
@@ -51,8 +60,9 @@ function createChatSelector (name) {
 
 function createChat (event) {
     console.log('send new chat clicked: '+ event.target)
-    const name = newChatInput.value.trim();
-    fetch('http://' + apiHost + ':13001/createChat/' + name, {
+    const realName = newChatInput.value.trim();
+    const cleanedName = cleanName(realName); // Not to have errors with the URL
+    fetch('http://' + apiHost + ':13001/createChat/' + cleanedName, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -63,15 +73,16 @@ function createChat (event) {
     .then(data => {
         if (data.success) {
             // Create the button to select the chat
-            createChatSelector(name)
+            createChatSelector(realName, data.id)
             // Remove the popup 
-            hidePopup();
+            hidePopup();            
+            // Select the new chat
+            selectChat(data.id);
             // Send message if required (you got here pressing button send)
             if (event.target.getAttribute('send') === 'true') {
+                console.log('Entra')
                 sendMessage();
             }
-            // Select the new chat
-            selectChat(name);
         }
         // Alert of errors
         else {
@@ -83,6 +94,9 @@ function createChat (event) {
             }
             else if (data.error_code === 108) {
                 alert("The name can't start with a number")
+            }
+            else if (data.error_code === 109) {
+                alert("The name can't be empty")
             }
             else {alert(`Unexpected error ${data.error_code}: ${data.description}`)}
         }
@@ -149,13 +163,14 @@ function sendMessage() { // Sends a message to the RAG, and writes the answer
     .then(data => {
         if (data.success) {
             // Retrieve the answer and references used by the LLM
-            const answer = data.answer
-            const references = data.references
+            const answer = data.answer;
+            const references = data.references;
+            let robotImage = undefined; // Choose the right image
             if (mode === 'RAG') {
-                const robotImage = "robot_docs.png";
+                robotImage = "images/robot_docs.png";
             }
             else if (mode === 'chat') {
-                const robotImage = "robot.png";
+                robotImage = "images/robot.png";
             }
             else {
                 alert('Mode error!!' + mode);
@@ -164,12 +179,12 @@ function sendMessage() { // Sends a message to the RAG, and writes the answer
             const answerHTML = `<div class="text-container-ai">
 							<img class="logo-ai" src="${robotImage}">
 							<div class="from-ai">${answer}</div>
-						</div>`
-            space.innerHTML += answerHTML
+						</div>`;
+            space.innerHTML += answerHTML;
             if (references) {
-                space.innerHTML += `<div class="references"><p>References: [${references}]</p></div>`
+                space.innerHTML += `<div class="references"><p>References: ${references}</p></div>`;
             }
-            console.log('LLM answer' + answer)
+            console.log('LLM answer' + answer);
         }
         else { // We inform about the error
             alert("Error code: " + data.error_code + "\n Description: " + data.description);
@@ -195,7 +210,7 @@ function loadPage () {
         // Create the chat buttons at the navbar
         openChats.innerHTML = ''
         data.chats.forEach((element) => {
-            createChatSelector(element.name)
+            createChatSelector(element.realName, element.id)
         })
         console.log(chatSelected);
         if (chatSelected) {
@@ -213,13 +228,13 @@ function loadPage () {
     });
     }
 
-function loadConversation (conversationName) {
-    fetch('http://' + apiHost + ':13001/chats/' + conversationName, {
+function loadConversation (id) {
+    fetch('http://' + apiHost + ':13001/chats/' + id, {
         method: 'GET'})
     .then(response => response.json()).catch(() => alert('Backend api not ready, loadConversation'))
     .then(data => {
         console.log(data)
-        console.log("Conversation with name " + conversationName + " received: " + data)
+        console.log("Conversation with name " + id + " received: " + data)
         if (data.success) {
             if (data.chat.length === 0) {
                 chatSpace.innerHTML =  `
@@ -231,7 +246,7 @@ function loadConversation (conversationName) {
             else {
                 chatSpace.innerHTML = '';
                 const name = data.chat.name;
-                const conversation = data.chat;
+                const conversation = data.chat.conversation;
                 conversation.forEach((comment) => {
                     if (comment.role === "user") { // We add the user comment
                         chatSpace.innerHTML += `
@@ -240,14 +255,27 @@ function loadConversation (conversationName) {
                                 <img class="logo-ai" src="images/user.png">
                             </div>`;
                     }
-                    else if (comment.role === "assistant") { // 
+                    else if (comment.role === "assistant") { // We add the assistant comment
+                        let robotImage = undefined; // Choose the right image
+                        if (comment.mode === 'RAG') {
+                            robotImage = "images/robot_docs.png";
+                        }
+                        else if (comment.mode === 'chat') {
+                            console.log('chat')
+                            robotImage = "images/robot.png";
+                        }
+                        else {
+                            alert('Mode error!!' + mode);
+                            console.log('Mode not found: '+mode)
+                            return;
+                        }
                         chatSpace.innerHTML += `
                         <div class="text-container-ai">
-                            <img class="logo-ai" src="images/robot.png">
+                            <img class="logo-ai" src="${robotImage}">
                             <div class="from-ai">${comment.content}</div>
                         </div>`
                         if (comment.references) {
-                        chatSpace.innerHTML += `<div class="references"><p>References: [${comment.references}]</p></div>`;
+                        chatSpace.innerHTML += `<div class="references"><p>References: ${comment.references}</p></div>`;
                         }
                     }
                     else {
@@ -268,18 +296,18 @@ function loadConversation (conversationName) {
     })
 }
 
-function selectChat (name) {
-    console.log('selectChat clicked on button: ' + name)
+function selectChat (id) {
+    console.log('selectChat clicked on button: ' + id)
     const oldSelected = document.querySelector(".chat#" + chatSelected);
     if (oldSelected) {
         oldSelected.classList.remove("active");
         oldSelected.disabled = false;
     }
-    const newSelected = document.querySelector(".chat#" + name);
+    const newSelected = document.querySelector(".chat#" + id);
     newSelected.classList.add("active"); 
     newSelected.disabled = true;
-    chatSelected = name;
-    loadConversation(name);
+    chatSelected = id;
+    loadConversation(id);
     localStorage.setItem("chatSelected", chatSelected);
 }
 
