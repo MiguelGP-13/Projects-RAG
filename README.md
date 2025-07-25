@@ -143,3 +143,5 @@ RAG doesn't sends the answer => When reloaded, it appears (loading the chat has 
 Alignment problem with references
 
 When selecting one choice, put ramdom number instead of 0
+
+When chat answers, it deletes the question and appears strangely

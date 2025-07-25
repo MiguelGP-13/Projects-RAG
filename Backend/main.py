@@ -260,13 +260,21 @@ def deleteChat(id):
 
 @app.route("/")
 def index():
-    # Sirve main.html como página principal
+    # Returns the main.html
     return send_from_directory(app.static_folder, "../Frontend/main.html")
 
 @app.route("/<path:path>")
 def static_files(path):
-    # Sirve archivos estáticos como scripts, css, imágenes…
+    # Serves static files
     return send_from_directory(app.static_folder, "../Frontend/" + path)
+
+@app.route("/health")
+def index():
+    # Answers if the service is up
+    try:
+        return jsonify({'success':REDIS_DB.ping()})
+    except Exception as e:
+        return jsonify({'success':False, "description":f"Unexpected error {e}", "error_code":0})
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=13001)

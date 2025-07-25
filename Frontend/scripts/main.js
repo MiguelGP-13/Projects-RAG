@@ -3,12 +3,12 @@ function cleanName (text) { // Encode spaces as %20
     text = text.replace(/\./g, '%2E');
     return text.replace(/ /g, '%20');
 }
-function returnSpaces (text) { // Unencode spaces previously converted to %20
-    return text.replace(/%20/g, ' ');
-}
+// function returnSpaces (text) { // Unencode spaces previously converted to %20
+//     return text.replace(/%20/g, ' ');
+// }
 
 
-function nameNewChat (send = false) {
+function popupNewChat (send = false) {
     // Include the HTML to ask for the name of the new chat
     // Include the send attribute
     popup.innerHTML = `                        
@@ -143,7 +143,7 @@ function sendMessage() { // Sends a message to the RAG, and writes the answer
     const query = input.value.trim();
     if (!query) return;
     if (!chatSelected) {
-        nameNewChat(true);
+        popupNewChat(true);
         return;
     }
     // Add the query and delete it from the input
@@ -187,7 +187,7 @@ function sendMessage() { // Sends a message to the RAG, and writes the answer
 						</div>`;
             space.innerHTML += answerHTML;
             if (references) {
-                space.innerHTML += `<div class="references"><p>References: ${references}</p></div>`;
+                space.innerHTML += `<div class="references"><p>References: [${references}]</p></div>`;
             }
             console.log('LLM answer' + answer);
         }
@@ -280,7 +280,7 @@ function loadConversation (id) {
                             <div class="from-ai">${comment.content}</div>
                         </div>`
                         if (comment.references) {
-                        chatSpace.innerHTML += `<div class="references"><p>References: ${comment.references}</p></div>`;
+                        chatSpace.innerHTML += `<div class="references"><p>References: ${comment.references} </p></div>`;
                         }
                     }
                     else {
@@ -331,6 +331,21 @@ function selectMode (newMode) {
 
 }
 
+function popupNewQuestionnaire () {
+    // selectMode
+    selectMode('questionnaire');
+    
+    if (!files) { // Cancel button was clicked
+        selectMode('RAG');
+    }
+    else {
+        // We create the questionnaire and load it in the page
+        createQuestionnaire(files);
+    }
+
+    //
+}
+
 
 // Declaration of elements
 let mode = undefined; // Mode of the app selected
@@ -338,7 +353,7 @@ let chatSelected = localStorage.getItem("chatSelected"); // Which chat is select
 let newChatInput = undefined; // Will be defined when the newChat popup appears
 const input = document.querySelector('.js-input');
 const button = document.querySelector('.js-send-button');
-const chatSpace = document.querySelector('.chat-space');
+const chatSpace = document.querySelector('.js-chat-space');
 const openChats = document.querySelector('.open-chats');
 const newChatButton = document.querySelector('.js-new-chat-button');
 const popup = document.querySelector('.popup-container');
@@ -350,12 +365,17 @@ input.addEventListener('input', () => { // Listener for the input to disable the
 button.addEventListener('click', sendMessage); // Listener for sending a message
 
 document.querySelectorAll('.navbar .js-title-left').forEach((element) => { // Listener for modes buttons
-    element.addEventListener('click', (event) => {
-        selectMode(event.currentTarget.getAttribute('id'));
-    })
+    if (element.getAttribute('id') === "questionnaire"){
+        element.addEventListener('click', popupNewQuestionnaire);
+    }
+    else {
+        element.addEventListener('click', (event) => {
+            selectMode(event.currentTarget.getAttribute('id'));
+        })
+    }
 })
 
-newChatButton.addEventListener('click', nameNewChat)
+newChatButton.addEventListener('click', popupNewChat)
 
 
 // Code to initialize page correctly

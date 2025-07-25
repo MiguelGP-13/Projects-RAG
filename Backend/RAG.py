@@ -17,13 +17,14 @@ def saveChat(prompt, answer, actual_chat, mode, references=None):
             conv = json.load(f)
             realName = conv['name']
             chat = conv['conversation']
+            creationDate = conv['creationDate']
     except FileNotFoundError:
         # chat = [] # The conversation is new
         raise FileNotFoundError # Now chats are created manually, so it should exist
     chat.append({"role":"user", "content":prompt}) # Add user prompt
     chat.append({"role":"assistant", "content":answer, "references":references, "mode": mode}) # Add assistant answer
     with open(actual_chat, 'w') as f:
-        json.dump({"name":realName, "conversation":chat}, f)
+        json.dump({"name": realName, "conversation": chat, "creationDate": creationDate}, f)
 
     return actual_chat
 
@@ -209,7 +210,7 @@ def query(prompt, model, embedder, redis, search_index, N, mode, actual_chat):
     ## Save chat
     actual_chat = saveChat(prompt, answer, actual_chat, 'RAG', str(reference_list))
 
-    return answer, reference_list, [doc.referencia for doc in context], actual_chat
+    return answer, str(reference_list)[1:-1], [doc.referencia for doc in context], actual_chat
 
 def LLMChat(prompt, model, mode, actual_chat):
     '''
