@@ -3,7 +3,7 @@ import os
 import warnings
 from hashlib import md5
 from datetime import datetime
-from flask import Flask, jsonify, request, send_from_directory
+from flask import Flask, jsonify, request, send_from_directory, send_file
 from flask_cors import CORS
 import json
 from mistralai import Mistral
@@ -40,7 +40,7 @@ if MODE == 'Mistral':
     DIMENSION = 1024
 if MODE == 'HuggingFace':
     MODEL = InferenceClient(token=os.getenv('API_HUGGINGFACE'))
-    MODEL_EMBEDDING = SentenceTransformer("intfloat/multilingual-e5-base")
+    MODEL_EMBEDDING = SentenceTransformer("intfloat/multilingual-e5-base", device='cpu')
     DIMENSION = 768
 elif MODE != 'Local':
     raise Exception('MODE enviroment variable supported types are: [LOCAL, MISTRAL]')
@@ -165,7 +165,7 @@ def delete_doc():
         if clear:
             clear = delete_embeddings(file_name, REDIS_DB) # clear= Number of chunks deleted
     except FileNotFoundError:
-            return jsonify({'success':False, "error_code":102, 'description':f"The is no file named {file_name}."})
+            return jsonify({'success':False, "error_code":102, 'description':f"There is no file named {file_name}."})
     except Exception as e:
             return jsonify({'success':False, "error_code":0, 'description':f"TUnexpected error: {e}"})
     return jsonify({'success':True, "description":f" The file {file_name} was deleted", 'database_cleared':f"{clear} chunks deleted"})
@@ -199,14 +199,28 @@ def upload(): # Saves a file in the files folder and updates the redis DB
 @app.route("/files", methods=['GET'])
 def pdfs():
     try:
+        if not os.path.isdir(DOCUMENT_FOLDER):
+            print('Documents folder not found, creating one: ',DOCUMENT_FOLDER)
+            os.mkdir(DOCUMENT_FOLDER)
         return jsonify({'success':True, 'files':[file.split('.')[0] for file in os.listdir(DOCUMENT_FOLDER)]})
     except Exception as e:
         print('no ha ido')
         return jsonify({'success':False, "error_code":0, 'description':f"Unexpected error ocurred while loading available files: {e}"})
     
+@app.route('/file/<filename>', methods=['GET'])
+def get_pdf(filename):
+    path = DOCUMENT_FOLDER + '/' + filename + '.pdf'
+    print(path, filename)
+    if not os.path.exists(path):
+        return jsonify({"success":False, "error_code":102, "description":f"There is no file named {filename}."})  # File not found
+    return send_file("../" + path, mimetype='application/pdf')
+
 @app.route("/chats", methods=['GET'])
 def get_chats():
     try:
+        if not os.path.isdir(CHATS_FOLDER):
+            print('Chats folder not found, creating one: ',CHATS_FOLDER)
+            os.mkdir(CHATS_FOLDER)
         chats = [file for file in os.listdir(CHATS_FOLDER)]
         conversations = []
         for path in chats:
@@ -266,10 +280,11 @@ def index():
 @app.route("/<path:path>")
 def static_files(path):
     # Serves static files
+    print("../Frontend/" + path)
     return send_from_directory(app.static_folder, "../Frontend/" + path)
 
 @app.route("/health")
-def index():
+def health():
     # Answers if the service is up
     try:
         return jsonify({'success':REDIS_DB.ping()})

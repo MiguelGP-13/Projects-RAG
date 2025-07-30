@@ -334,18 +334,67 @@ function selectMode (newMode) {
 function popupNewQuestionnaire () {
     // selectMode
     selectMode('questionnaire');
-    
-    if (!files) { // Cancel button was clicked
-        selectMode('RAG');
-    }
-    else {
-        // We create the questionnaire and load it in the page
-        createQuestionnaire(files);
-    }
-
-    //
+    fetch('http://' + apiHost + ':13001/files', {
+        method: 'GET'}).then(response => response.json()).catch(() => alert('Backend api not ready, getFiles'))
+        .then(data => { 
+            if (!data.success) {
+                alert("Error code: " + data.error_code + "\n Description: " + data.description);
+            }
+            else {
+                if (data.files.length === 0) {// Cancel button was clicked
+                    selectMode('RAG');
+                    alert('There are no files uploaded, please, first upload a document.');
+                  }
+                else {
+                    // Choose files
+                    questionnaire.style.zIndex = "2";
+                    data.files.forEach((pdfName) => {
+                        questionnaireFiles.innerHTML += `
+                        <div class="fileContainer">
+                            <p>${pdfName}</p>
+                            <div class="fileButtons">				  
+                                <input class="select-checkbox" type="checkbox" pdf="${pdfName}">
+                            <button class="button js-open-file" pdf="${pdfName}">Open</button>
+                            </div>
+                        </div>`;
+                    }).then(
+                        
+                    )
+                    // We create the questionnaire and load it in the page
+                    createQuestionnaire(data.files);
+                }}})
 }
 
+function createQuestionnaire () {
+    const checkboxes = document.querySelectorAll('.questionnaire input[type="checkbox"]');
+    const files = [];
+    checkboxes.forEach(cb => {
+      if (cb.checked) {
+        files.push(cb.pdf);
+      }
+    });
+    // send files to backend, create questionnaire! => New page
+  }
+
+function openFile(event) {
+    const filename = event.target.getAttribute('pdf');
+    console.log('Se mostrará ' + filename);
+  
+    fetch('http://' + apiHost + ':13001' + `/file/${filename}`).catch(() => alert('Backend api not ready, openFile'))
+      .then(response => {
+        if (response.success === false) {
+          alert('Error');
+        }
+        return response.blob(); // Convert to binary
+      })
+      .then(blob => {
+        const fileURL = URL.createObjectURL(blob);
+        window.open(fileURL, '_blank'); // Open PDF in new tab
+      })
+      .catch(error => {
+        console.error('Error al mostrar el archivo:', error);
+      });
+  }
 
 // Declaration of elements
 let mode = undefined; // Mode of the app selected
@@ -357,6 +406,8 @@ const chatSpace = document.querySelector('.js-chat-space');
 const openChats = document.querySelector('.open-chats');
 const newChatButton = document.querySelector('.js-new-chat-button');
 const popup = document.querySelector('.popup-container');
+const questionnaire = document.querySelector(".questionnaire");
+const questionnaireFiles = document.querySelector(".questionnaire-files");
 
 // Listeners
 input.addEventListener('input', () => { // Listener for the input to disable the button
@@ -381,8 +432,10 @@ newChatButton.addEventListener('click', popupNewChat)
 // Code to initialize page correctly
 const apiHost = 'localhost'; // It runs on the browser
 selectMode('RAG');
+popupNewQuestionnaire();
 loadPage();
 button.disabled = input.value.trim() === '';
+// questionnaire.style.zIndex = "-1"; // Hide the qustionaire
 
 
 

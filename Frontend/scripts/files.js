@@ -7,13 +7,13 @@ function showSender() { // Shows the form and changes the background color as th
 }
 
 function activeteFilesButtons () { // Creates the listener for the new buttons generated (delete and open)
-  document.querySelectorAll(".js-delete").forEach(element => {
+  document.querySelectorAll(".js-delete-file").forEach(element => {
     element.addEventListener("click", deleteFile)
   });
-  document.querySelectorAll(".js-open").forEach(element => {
+  document.querySelectorAll(".js-open-file").forEach(element => {
     element.addEventListener("click", openFile)});
-    console.log(document.querySelectorAll(".js-delete"))
-    console.log(document.querySelectorAll(".js-open"))
+    console.log(document.querySelectorAll(".js-delete-file"))
+    console.log(document.querySelectorAll(".js-open-file"))
 }
 
 function hideSender() { // Hides the send form and changes colour to normal
@@ -25,7 +25,7 @@ function hideSender() { // Hides the send form and changes colour to normal
 
 function getFiles () {
   fetch('http://' + apiHost + ':13001/files', {
-    method: 'GET'}).then(response => response.json())
+    method: 'GET'}).then(response => response.json()).catch(() => alert('Backend api not ready, getFiles'))
     .then(data => { // Generates html from the files available
       if (data.files.length === 0) {
         content.innerHTML = '<h1 class="files">Files</h1><h2 style="text-align:center">There are no files in the database</h2>';
@@ -37,8 +37,8 @@ function getFiles () {
           <div class="fileContainer">
             <p>${pdfName}</p>
             <div class="fileButtons">
-              <button class="button js-delete" pdf="${pdfName}">Delete</button>
-              <button class="button js-open" pdf="${pdfName}">Open</button>
+              <button class="button js-delete-file" pdf="${pdfName}">Delete</button>
+              <button class="button js-open-file" pdf="${pdfName}">Open</button>
             </div>
           </div>`;
         })
@@ -66,7 +66,7 @@ function uploadFiles(event) {
   fetch('http://' + apiHost + ':13001/upload', {
       method: 'POST',
       body: formData // Send the files directly
-  }).then(response => response.json())
+  }).then(response => response.json()).catch(() => alert('Backend api not ready, uploadFiles'))
   .then(data => {
     if (data.success) {
       console.log(data)
@@ -88,7 +88,7 @@ function deleteFile (event) {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({'file_name':pdfName, 'clear_database':true}) // Send the files directly
-  }).then(response => response.json())
+  }).then(response => response.json()).catch(() => alert('Backend api not ready, deleteFile'))
   .then(data => {
     if (data.success) {
       console.log(data);
@@ -97,9 +97,26 @@ function deleteFile (event) {
   });
 }
 
-function openFile (event) {
-  console.log('Se mostrará '+event.target.getAttribute('pdf'))
+function openFile(event) {
+  const filename = event.target.getAttribute('pdf');
+  console.log('Se mostrará ' + filename);
+
+  fetch('http://' + apiHost + ':13001' + `/file/${filename}`).catch(() => alert('Backend api not ready, openFile'))
+    .then(response => {
+      if (response.success === false) {
+        alert('Error');
+      }
+      return response.blob(); // Convert to binary
+    })
+    .then(blob => {
+      const fileURL = URL.createObjectURL(blob);
+      window.open(fileURL, '_blank'); // Open PDF in new tab
+    })
+    .catch(error => {
+      console.error('Error al mostrar el archivo:', error);
+    });
 }
+
 
 // Add listeners and eventListeners
 const form = document.getElementsByClassName('js-fileForm')[0]

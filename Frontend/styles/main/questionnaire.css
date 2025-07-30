@@ -1,9 +1,53 @@
 .questionnaire {
     z-index: 2;
-    background-color: aquamarine;
+    background-color: #a094a9;
     width: calc(100% - 165px);
     height: calc(100% - 90px);
     position: absolute;
     margin-top: 90px;
-    margin-left: 165px;
+    margin-left: 175px;
+    padding-left: 10px;
 }
+
+
+.fileContainer {
+    display:flex;
+    border-bottom: 2px solid #e5e5ea;
+    color:white;
+    padding: 5px;
+    font-size: 30px;
+    min-height: 100px;
+    max-height: 160px;
+    align-items: center;
+    justify-content: space-between;
+}
+
+
+.fileButtons {
+    display:flex;
+    position:relative;
+    margin-right: 45px;
+    gap:20px;
+}
+
+
+.button {
+    background-color: #ffeccc;
+    color:  #895200;
+    border-radius: 10px;
+    border-width: 0px;
+    width: 60px;
+    height: 30px;
+    cursor: pointer;
+}
+
+.files {
+    text-align: center;
+    color: white;
+    text-decoration: underline;
+}
+
+.select-checkbox {
+    accent-color: aquamarine;
+}
+      
