@@ -1,6 +1,7 @@
 # Projects-RAG
-Created a RAG using 2 options:
-- Mistral (online)
+Created a RAG using 3 free options:
+- HuggingFace (LLM online, embeddings local) with higher limit. Recommended
+- Mistral (full online), low limit
 - Ollama (local)
 It uses a python backend with an html/js/css frontend to interact with it.
 
