@@ -22,7 +22,6 @@ files.html: Page to upload files for the RAG to use.
 {"prompt": "QUERY", "chat": "Chat selected"}
 ```
 *Answer*: 
-```json
 Chat: 
 ```json
 {"success": true, "answer": "LLM answer"}
