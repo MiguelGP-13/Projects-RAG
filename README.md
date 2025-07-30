@@ -1,6 +1,7 @@
 # Projects-RAG
-Created a RAG using 2 options:
-- Mistral (online)
+Created a RAG using 3 free options:
+- HuggingFace (LLM online, embeddings local) with higher limit. Recommended
+- Mistral (full online), low limit
 - Ollama (local)
 It uses a python backend with an html/js/css frontend to interact with it.
 
@@ -13,7 +14,7 @@ files.html: Page to upload files for the RAG to use.
 
 ### Error response:
 ```json
-{"success": false, "error_code": Code, "description": "Error description"}
+{"success": false, "error_code": "Code (int)", "description": "Error description"}
 ```
 
 ### 1. POST /query/<queryMode> [ RAG / chat]
@@ -22,10 +23,15 @@ files.html: Page to upload files for the RAG to use.
 {"prompt": "QUERY", "chat": "Chat selected"}
 ```
 *Answer*: 
-```json
-Chat: {"success": true, "answer": "LLM answer"}
-RAG: {"success": true, "answer": "LLM answer", "references":Id of context peices, "reference_text":Context pieces text}
-```
+
+  Chat: 
+  ```json
+  {"success": true, "answer": "LLM answer"}
+  ```
+  RAG: 
+  ```json
+  {"success": true, "answer": "LLM answer", "references": "Id of context peices", "reference_text": "Context pieces text"}
+  ```
 
 ### 2. POST /remove_doc  
 *Payload*:  
@@ -44,13 +50,13 @@ RAG: {"success": true, "answer": "LLM answer", "references":Id of context peices
 ### 3. POST /update  
 *Payload*:  
 ```json
-{"pdfs_array": ["PDF NAME 1", "PDF NAME 2", ...]}
+{"pdfs_array": ["PDF NAME 1", "PDF NAME 2", "..."]}
 ```
 *Answer*:  
 ```json
 {
   "success": true,
-  "pdfs_created": ["PDF NAME 1", "PDF NAME 2", ...],
+  "pdfs_created": ["PDF NAME 1", "PDF NAME 2", "..."],
   "number_of_chunks": "n_chunks new chunks were created"
 }
 ```
@@ -62,7 +68,7 @@ RAG: {"success": true, "answer": "LLM answer", "references":Id of context peices
 ```json
 {
   "success": true,
-  "pdfs_created": ["PDF NAME 1", "PDF NAME 2", ...],
+  "pdfs_created": ["PDF NAME 1", "PDF NAME 2", "..."],
   "number_of_chunks": "n_chunks new chunks were created"
 }
 ```
@@ -70,7 +76,7 @@ RAG: {"success": true, "answer": "LLM answer", "references":Id of context peices
 ### 5. GET /files  
 *Answer*:  
 ```json
-{"success": true, "files": ["PDF NAME 1", "PDF NAME 2", ...]}
+{"success": true, "files": ["PDF NAME 1", "PDF NAME 2", "..."]}
 ```
 
 ### 6. GET /chats  
@@ -81,8 +87,8 @@ RAG: {"success": true, "answer": "LLM answer", "references":Id of context peices
   "chats": [
     {
       "realName": "My Chat",
-      "id": hash,
-      "creationDate": timestamp
+      "id": "hash",
+      "creationDate": "timestamp"
     },
     ...
   ]
@@ -94,14 +100,14 @@ RAG: {"success": true, "answer": "LLM answer", "references":Id of context peices
 ```json
 {
   "success": true,
-  "chat": [ Conversation saved ]
+  "chat": [ "Conversation saved" ]
 }
 ```
 
 ### 8. POST /createChat/<name>  
 *Answer*:  
 ```json
-{"success": true, "id": hash}
+{"success": true, "id": "hash"}
 ```
 
 ### 9. POST /deleteChat/<name>  
