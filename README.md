@@ -22,14 +22,15 @@ files.html: Page to upload files for the RAG to use.
 {"prompt": "QUERY", "chat": "Chat selected"}
 ```
 *Answer*: 
-Chat: 
-```json
-{"success": true, "answer": "LLM answer"}
-```
-RAG: 
-```json
-{"success": true, "answer": "LLM answer", "references": "Id of context peices", "reference_text": "Context pieces text"}
-```
+
+  Chat: 
+  ```json
+  {"success": true, "answer": "LLM answer"}
+  ```
+  RAG: 
+  ```json
+  {"success": true, "answer": "LLM answer", "references": "Id of context peices", "reference_text": "Context pieces text"}
+  ```
 
 ### 2. POST /remove_doc  
 *Payload*:  
