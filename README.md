@@ -13,7 +13,7 @@ files.html: Page to upload files for the RAG to use.
 
 ### Error response:
 ```json
-{"success": false, "error_code": Code, "description": "Error description"}
+{"success": false, "error_code": `Code`, "description": "Error description"}
 ```
 
 ### 1. POST /query/<queryMode> [ RAG / chat]
