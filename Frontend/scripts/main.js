@@ -219,6 +219,7 @@ function loadPage () {
         })
         console.log(chatSelected);
         if (chatSelected) {
+            // Should make sure it exists
             selectChat(chatSelected)
         }
         else {
@@ -303,12 +304,12 @@ function loadConversation (id) {
 
 function selectChat (id) {
     console.log('selectChat clicked on button: ' + id)
-    const oldSelected = document.querySelector(".chat#" + chatSelected);
+    const oldSelected = document.querySelector("#" + chatSelected + ".chat");
     if (oldSelected) {
         oldSelected.classList.remove("active");
         oldSelected.disabled = false;
     }
-    const newSelected = document.querySelector(".chat#" + id);
+    const newSelected = document.querySelector("#" + id + ".chat");
     newSelected.classList.add("active"); 
     newSelected.disabled = true;
     chatSelected = id;
@@ -317,23 +318,43 @@ function selectChat (id) {
 }
 
 function selectMode (newMode) {
+    questionnaire.style.zIndex = "-1";
     console.log("New mode selected: " + newMode);
-    const oldSelected = document.querySelector(".navbar .title-left#" + mode);
+    const oldSelected = document.querySelector(".navbar #" + mode + ".title-left");
     if (oldSelected) {
         oldSelected.classList.remove("active");
         oldSelected.disabled = false;
     }
     
-    const newSelected = document.querySelector(".navbar .title-left#" + newMode);
+    const newSelected = document.querySelector(".navbar .title-left#" + newMode + ".title-left");
     newSelected.classList.add("active");  
     newSelected.disabled = true;
     mode = newMode;
 
 }
 
+
+function selectDifficulty (newDifficulty) {
+    console.log("New difficulty selected: " + newDifficulty);
+    const oldSelected = document.querySelector(".js-questionnaire #" + difficulty + ".js-level");
+    if (oldSelected) {
+        oldSelected.classList.remove("active");
+        oldSelected.disabled = false;
+    }
+    console.log(".js-questionnaire #" + newDifficulty + ".js-level")
+    const newSelected = document.querySelector(".js-questionnaire #" + newDifficulty + ".js-level");
+    newSelected.classList.add("active");  
+    newSelected.disabled = true;
+    difficulty = newDifficulty;
+
+}
+
 function popupNewQuestionnaire () {
     // selectMode
     selectMode('questionnaire');
+    selectDifficulty('medium');
+    questionnaireSlider.value = 10;
+    updateValue(questionnaireSlider.value);
     fetch('http://' + apiHost + ':13001/files', {
         method: 'GET'}).then(response => response.json()).catch(() => alert('Backend api not ready, getFiles'))
         .then(data => { 
@@ -347,7 +368,8 @@ function popupNewQuestionnaire () {
                   }
                 else {
                     // Choose files
-                    questionnaire.style.zIndex = "2";
+                    questionnaire.style.zIndex = "2"; // Show questionaire popup
+                    questionnaireFiles.innerHTML = ''; // Show available files
                     data.files.forEach((pdfName) => {
                         questionnaireFiles.innerHTML += `
                         <div class="fileContainer">
@@ -357,11 +379,7 @@ function popupNewQuestionnaire () {
                             <button class="button js-open-file" pdf="${pdfName}">Open</button>
                             </div>
                         </div>`;
-                    }).then(
-                        
-                    )
-                    // We create the questionnaire and load it in the page
-                    createQuestionnaire(data.files);
+                    })
                 }}})
 }
 
@@ -373,7 +391,29 @@ function createQuestionnaire () {
         files.push(cb.pdf);
       }
     });
+    if (files.length === 0) {
+        alert('You must select at least one document to be quizzed about!')
+    }
+    else  {
     // send files to backend, create questionnaire! => New page
+    fetch('http://' + apiHost + ':13001/createQuestionnaire' , {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+          },
+        body: JSON.stringify({
+            "pdfs_array":files,
+            "level":levels[difficulty],
+            "number_of_questions":questionnaireSlider.value
+        }),
+    })
+    .then(response => response.json()).catch(()=>alert('Backend api not ready, createChat'))
+    .then(data => {
+        if (data.success) {
+
+        }
+    })
+    }
   }
 
 function openFile(event) {
@@ -396,8 +436,20 @@ function openFile(event) {
       });
   }
 
+function updateValue(val) { // Update value for slider
+    document.getElementById("valueDisplay").textContent = val;
+}
+
 // Declaration of elements
+const levels = {
+    "easy":1,
+    "medium":2,
+    "difficult":3,
+    "hardcore":4
+}
+
 let mode = undefined; // Mode of the app selected
+let difficulty = undefined; // Difficulty od the questionnaire
 let chatSelected = localStorage.getItem("chatSelected"); // Which chat is selected
 let newChatInput = undefined; // Will be defined when the newChat popup appears
 const input = document.querySelector('.js-input');
@@ -406,8 +458,10 @@ const chatSpace = document.querySelector('.js-chat-space');
 const openChats = document.querySelector('.open-chats');
 const newChatButton = document.querySelector('.js-new-chat-button');
 const popup = document.querySelector('.popup-container');
-const questionnaire = document.querySelector(".questionnaire");
-const questionnaireFiles = document.querySelector(".questionnaire-files");
+const questionnaire = document.querySelector(".js-questionnaire");
+const questionnaireFiles = document.querySelector(".js-questionnaire-files");
+const questionnaireSlider = document.querySelector(".js-questionnaire .questionnaire-slider");
+const createQuestionnaireButton = document.querySelector(".js-questionnaire .js-create-questionnaire");
 
 // Listeners
 input.addEventListener('input', () => { // Listener for the input to disable the button
@@ -426,7 +480,14 @@ document.querySelectorAll('.navbar .js-title-left').forEach((element) => { // Li
     }
 })
 
+document.querySelectorAll('.js-questionnaire .js-level').forEach((element) => { // Listener for questionnaire level buttons
+        element.addEventListener('click', (event) => {
+            selectDifficulty(event.currentTarget.getAttribute('id'));
+        })
+})
+
 newChatButton.addEventListener('click', popupNewChat)
+createQuestionnaireButton.addEventListener('click', createQuestionnaire)
 
 
 // Code to initialize page correctly
@@ -435,7 +496,4 @@ selectMode('RAG');
 popupNewQuestionnaire();
 loadPage();
 button.disabled = input.value.trim() === '';
-// questionnaire.style.zIndex = "-1"; // Hide the qustionaire
-
-
-
+questionnaire.style.zIndex = "-1"; // Hide the qustionaire

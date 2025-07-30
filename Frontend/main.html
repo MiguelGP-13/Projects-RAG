@@ -57,21 +57,30 @@
 						<button class="send-button js-send-button"><img class="logo" src="images/send.png"></button>
 					</div>
 				</main>
-				<div class ="footer">
-
-				</div>
 			</div>
 			<footer class="footer">
 			</footer>
 		</div>
 		<div class="popup-container">
 		</div>
-		<div class="questionnaire">
-			
+		
+		<div class="questionnaire js-questionnaire">
 			<h1 class="files">Select Files for Questionnaire </h1>
-			<div class="questionnaire-files"></div>
-			<!-- Create dificculty and number of questions flex -->
-			<button class="create-questionnaire">Crete Questionnaire</button>
+			<div class="questionnaire-files js-questionnaire-files"></div>
+			<h2 class="files">Options</h2>
+			<div class="questionnaire-number">
+				<div class="slider-title">Number of questions:</div>
+				<input class="questionnaire-slider" type="range" min="1" max="50" step="1" value="10" oninput="updateValue(this.value)">
+				<span id="valueDisplay">10</span>
+			</div>
+			<div class="questionnaire-level">
+				<div class="slider-title">Questions level:</div>
+				<button class="level left js-level" id="easy">Easy</button>
+				<button class="level js-level" id="medium">Medium</button>
+				<button class="level js-level" id="difficult">Difficult</button>
+				<button class="level right js-level" id="hardcore">Hardcore</button>
+			</div>
+			<button class="create-questionnaire js-create-questionnaire">Crete Questionnaire</button>
 		</div>
 	</body>
 	<script src="scripts/main.js"></script>

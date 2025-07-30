@@ -142,12 +142,12 @@ docker run -d --name redis-stack -p 6379:6379 -p 8361:8001 -e REDIS_ARGS="--requ
 
 
 ## Errors
-Dimensionate with %, if not it is ugly in different screens
 
 RAG doesn't sends the answer => When reloaded, it appears (loading the chat has the answer) # error with chat selection
-
-Alignment problem with references
 
 When selecting one choice, put ramdom number instead of 0
 
 When chat answers, it deletes the question and appears strangely
+
+Fix checking if chat exists when selecting chat
+

@@ -1,18 +1,21 @@
 .questionnaire {
-    z-index: 2;
+    z-index: -1;
     background-color: #a094a9;
-    width: calc(100% - 165px);
-    height: calc(100% - 90px);
+    width: calc(100% - 180px);
+    height: calc(100% - 110px);
     position: absolute;
     margin-top: 90px;
-    margin-left: 175px;
-    padding-left: 10px;
+    margin-left: 160px;
+    padding-left: 20px;
+    margin-bottom: 20px;
 }
 
+/* Files selector css */
 
 .fileContainer {
     display:flex;
     border-bottom: 2px solid #e5e5ea;
+    margin-bottom: 10px;
     color:white;
     padding: 5px;
     font-size: 30px;
@@ -50,4 +53,82 @@
 .select-checkbox {
     accent-color: aquamarine;
 }
-      
+
+/* Number of questions selector */
+.questionnaire-level,
+.questionnaire-number {
+    display: flex;
+    margin-right: 60px;
+    margin-left: 5px;
+    flex-wrap: wrap; 
+    
+}
+
+.questionnaire-number {
+    align-items: center;
+    justify-content: space-between;
+}
+
+.questionnaire-slider {
+    width:70%;
+    accent-color: #ffeccc;
+    color: #895200;
+}
+
+.slider-title {
+    color: white;
+    font-size: 20px;
+    margin-right: 20px;
+}
+
+#valueDisplay {
+    color: white;
+    font-size: 20px;
+    margin-left: 20px;
+}
+
+/* Difficoult selector */
+
+.questionnaire-level {
+    display: flex;
+}
+
+.questionnaire .level {
+    background-color: #d5d1aa;
+    color:  #895200;
+    border: 0.75px solid  #895200;
+    width: 17.5%;
+    height: 30px;
+    cursor: pointer;
+    margin: 0px;
+}
+.questionnaire .level:hover {
+    background-color: #ffeccc;
+    color:  #895200;
+    border: 0.75px solid  #895200;
+    width: 17.5%;
+    height: 30px;
+    cursor: pointer;
+    margin: 0px;
+}
+
+.questionnaire .level.active {
+    background-color: #ffeccc;
+    color:  #895200;
+    border: 0.75px solid  #895200;
+    width: 17.5%;
+    height: 30px;
+    cursor: pointer;
+    margin: 0px;
+}
+
+.questionnaire .level.left {
+    border-top-left-radius: 15px;
+    border-bottom-left-radius: 15px;
+    margin-left: 76px;
+}
+
+.questionnaire .level.right {
+    border-top-right-radius: 15px;
+    border-bottom-right-radius: 15px;
+}
