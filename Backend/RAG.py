@@ -2,6 +2,8 @@ import ollama
 from hashlib import md5
 from pypdf import PdfReader
 import numpy as np
+import re
+import random
 import json
 import markdown
 import os
@@ -115,7 +117,7 @@ def create_embeddings_pag(text, chunk_size, embedder, redis, name, page, mode):
         ## We save in the redis db
         print('Saving')
         for i, embedding in enumerate(embeddings):
-            redis.hset(new_chunks[i][0], mapping={"embedding":to_blob(np.array(embedding)),"hash":new_chunks[i][2], "referencia":new_chunks[i][1]})
+            redis.hset(new_chunks[i][0], mapping={"embedding":to_blob(np.array(embedding)),"hash":new_chunks[i][2], "reference":new_chunks[i][1]})
     return i + 1
 
 def create_embeddings_pdf(pdf_path: str, chunk_size: int, embedder, redis, mode):
@@ -163,7 +165,7 @@ def query(prompt, model, embedder, redis, search_index, N, mode, actual_chat):
     ## Find the N most similar chunks
     query = (
         Query(f'*=>[KNN {N} @embedding $embeddings]')
-        .return_fields("referencia")  
+        .return_fields("reference")  
         .dialect(2)
     )
     context = redis.ft(search_index).search(
@@ -177,7 +179,7 @@ def query(prompt, model, embedder, redis, search_index, N, mode, actual_chat):
 
     ## Create the prompt
     input_message = "Utilizando solo y unicamente este contexto, responde a la pregunta del final. Contexto:\n" + \
-    f"\n-----\n".join([doc.referencia for doc in context]) + \
+    f"\n-----\n".join([doc.reference.decode('utf-8') for doc in context]) + \
     f"\nPregunta: {prompt}."
     print(input_message)
 
@@ -194,7 +196,7 @@ def query(prompt, model, embedder, redis, search_index, N, mode, actual_chat):
         ).choices[0].message
     elif mode == 'HuggingFace':
         answer = model.chat.completions.create(
-            model="mistralai/Mistral-7B-Instruct-v0.3",
+            model="meta-llama/Meta-Llama-3.1-8B-Instruct",
             messages=[
                 {
                     "role": "user",
@@ -210,7 +212,7 @@ def query(prompt, model, embedder, redis, search_index, N, mode, actual_chat):
     ## Save chat
     actual_chat = saveChat(prompt, answer, actual_chat, 'RAG', str(reference_list))
 
-    return answer, str(reference_list)[1:-1], [doc.referencia for doc in context], actual_chat
+    return answer, str(reference_list)[1:-1], [doc.reference.decode('utf-8') for doc in context], actual_chat
 
 def LLMChat(prompt, model, mode, actual_chat):
     '''
@@ -235,7 +237,7 @@ def LLMChat(prompt, model, mode, actual_chat):
     elif mode == 'Mistral':
         answer = model.chat.complete(model= "mistral-small-latest", messages = chat).choices[0].message
     elif mode == 'HuggingFace':
-        answer = model.chat.completions.create(model="mistralai/Mistral-7B-Instruct-v0.3", messages= chat).choices[0].message
+        answer = model.chat.completions.create(model="meta-llama/Meta-Llama-3.1-8B-Instruct", messages= chat).choices[0].message
     print(answer)
     
     ## Convert markdown to html
@@ -245,3 +247,82 @@ def LLMChat(prompt, model, mode, actual_chat):
     actual_chat = saveChat(prompt, answer, actual_chat, 'chat')
 
     return answer, actual_chat
+
+def checkQuestions(answer):
+    if answer[0] != '[' or answer[-1] != ']': # We make sure it has no initial or ending extra text
+        answer = '[' + re.match(r"\[(.*)\]", answer).group() + ']'
+    # if checkBrackets(answer): Maybe we could check brackets match
+    questions = json.loads(answer)
+    print(questions)
+    return questions
+
+def createQuestionnaireHTML(pdfs, level, nQuestions, model, redis, mode, maxChunks):
+    keys = []
+    for file in pdfs:
+        file_name = file.split('/')[-1].split('.')[0]
+        keys += redis.keys(f"documentos:{file_name}:*")
+    print(keys)
+    nChunks = min(len(keys), nQuestions) # We query if possible, one chunk per question (After we will filter)
+    questions = [] # We will store here the questions
+    for _ in range(min(nChunks,maxChunks)): # We create questions about nChunks
+        chosen = random.choice(keys)
+        keys.remove(chosen)
+        print(chosen)
+        context = redis.hget(chosen,"referencia").decode('utf-8') # To be changed to reference
+        prompt = f'''
+                Create {max(5,nQuestions//nChunks)} test questions with 4 possible answers of this information. 
+                Using exclusively this information:
+                {context}
+
+                The level of the questions should be {level}, being 1 the easiest and 4 the most difficult.
+                Your answer should be a list of json objects like the example:
+                [{{
+                "question":"What size are the ninja turtles?"
+                "options":["5 meters", "All options are correct", "1.2 cm", "2 meters"]
+                }},
+                ...]
+                '''
+        print(prompt)
+        ## Generate the questions and answers with the LLM aid
+        if mode == 'Local':
+            answer = ollama.chat(model=model, messages=prompt).message
+        elif mode == 'Mistral':
+            answer = model.chat.complete(model= "mistral-small-latest", messages = prompt).choices[0].message
+        elif mode == 'HuggingFace':
+            answer = model.chat.completions.create(model="meta-llama/Meta-Llama-3.1-8B-Instruct", messages= prompt).choices[0].message
+        print(answer)
+        questions += checkQuestions(answer.content) # Check the format is correct
+    ## Choose the best nQuestions
+    prompt = f'''
+             Choose the best {nQuestions} (exactly {nQuestions}, no one more, no one less) adjusted to the level {level}, being 1 the easiest and 4 the most difficult.
+             Choose based on relevance. Discard the ones that might have been errors. 
+             Answer only with the number before the question 
+             Example answer: 
+             1, 2, 7, 9
+             Questions to evaluate:
+
+             '''
+    for i, question in enumerate(questions):
+        prompt += "\n" + str(i+1) + ":" + question['question']
+        for n, option in enumerate(question['options']):
+            prompt += f"\n\t {chr(ord('a') + n)}: {option}"
+    if mode == 'Local':
+        answer = ollama.chat(model=model, messages=prompt).message
+    elif mode == 'Mistral':
+        answer = model.chat.complete(model= "mistral-small-latest", messages = prompt).choices[0].message
+    elif mode == 'HuggingFace':
+        answer = model.chat.completions.create(model="meta-llama/Meta-Llama-3.1-8B-Instruct", messages= prompt).choices[0].message
+    number = ''
+    print(answer)
+    finalQuestions = []
+    for char in answer: # Detect numbers in answer
+        if char in [str(i) for i in range(10)]:
+            number += char
+        else:
+            if number != '':
+                finalQuestions.append(questions[number - 1])
+                print(number, end= ', ')
+            number = ''
+    print()
+    print(finalQuestions)
+    return finalQuestions

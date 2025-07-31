@@ -388,7 +388,8 @@ function createQuestionnaire () {
     const files = [];
     checkboxes.forEach(cb => {
       if (cb.checked) {
-        files.push(cb.pdf);
+        files.push(cb.getAttribute('pdf'));
+        console.log(cb.pdf, cb.getAttribute('pdf'))
       }
     });
     if (files.length === 0) {
@@ -407,7 +408,7 @@ function createQuestionnaire () {
             "number_of_questions":questionnaireSlider.value
         }),
     })
-    .then(response => response.json()).catch(()=>alert('Backend api not ready, createChat'))
+    .then(response => response.json()).catch(()=>alert('Backend api not ready, createQuestionnaire'))
     .then(data => {
         if (data.success) {
 
@@ -493,7 +494,7 @@ createQuestionnaireButton.addEventListener('click', createQuestionnaire)
 // Code to initialize page correctly
 const apiHost = 'localhost'; // It runs on the browser
 selectMode('RAG');
-popupNewQuestionnaire();
+// popupNewQuestionnaire();
 loadPage();
 button.disabled = input.value.trim() === '';
 questionnaire.style.zIndex = "-1"; // Hide the qustionaire

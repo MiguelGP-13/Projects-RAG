@@ -29,6 +29,7 @@ MODEL_EMBEDDING = os.getenv('EMBEDDINGS')
 MODEL = os.getenv('MODEL')
 DIMENSION = os.getenv('DIMENSION')
 CHUNK_SIZE = int(os.getenv('CHUNK_SIZE'))
+MAX_CHUNKS = 15#int(os.getenv('MAX_CHUNKS'))
 CONTEXT_SIZE = os.getenv('CONTEXT_SIZE')
 DOCUMENT_FOLDER = os.getenv('DOCUMENT_FOLDER')
 CHATS_FOLDER = os.getenv('CHATS_FOLDER')
@@ -271,6 +272,18 @@ def deleteChat(id):
         return jsonify({'success':False, "error_code":105, 'description':f"Chat {id} doesn't exist."})
     os.remove(CHATS_FOLDER + '/' + id + '.json')
     return jsonify({'success':True, 'deleted': id + '.json'})
+
+@app.route("/createQuestionnaire", methods=["POST"])
+def createQuestionnaire():
+    message = request.json 
+    pdfs = message['pdfs_array']
+    level = message['level']
+    nQuestions = message['number_of_questions']
+    print(pdfs, level, nQuestions)
+        # return jsonify({'success':False, "error_code":108, 'description':f"Chat {hash} can't start with a number."})
+    return jsonify({"success":True, "questions":createQuestionnaireHTML(pdfs, int(level), int(nQuestions), MODEL, REDIS_DB, MODE, MAX_CHUNKS)})
+    
+
 
 @app.route("/")
 def index():
