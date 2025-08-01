@@ -411,7 +411,7 @@ function createQuestionnaire () {
     .then(response => response.json()).catch(()=>alert('Backend api not ready, createQuestionnaire'))
     .then(data => {
         if (data.success) {
-
+            data.questions
         }
     })
     }

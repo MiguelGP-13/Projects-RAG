@@ -250,10 +250,16 @@ def LLMChat(prompt, model, mode, actual_chat):
 
 def checkQuestions(answer):
     if answer[0] != '[' or answer[-1] != ']': # We make sure it has no initial or ending extra text
-        answer = '[' + re.match(r"\[(.*)\]", answer).group() + ']'
+        try:
+            answer = '[' + re.search(r"\[(.*)\]", answer, re.DOTALL).group() + ']'
+        except AttributeError:
+            print(answer)
+            print("¡¡AttributeError!!")
+            return []
     # if checkBrackets(answer): Maybe we could check brackets match
     questions = json.loads(answer)
-    print(questions)
+    if len(questions) == 1:
+        questions = questions[0]
     return questions
 
 def createQuestionnaireHTML(pdfs, level, nQuestions, model, redis, mode, maxChunks):
@@ -268,37 +274,41 @@ def createQuestionnaireHTML(pdfs, level, nQuestions, model, redis, mode, maxChun
         chosen = random.choice(keys)
         keys.remove(chosen)
         print(chosen)
-        context = redis.hget(chosen,"referencia").decode('utf-8') # To be changed to reference
+        context = redis.hget(chosen,"reference").decode('utf-8')
         prompt = f'''
                 Create {max(5,nQuestions//nChunks)} test questions with 4 possible answers of this information. 
                 Using exclusively this information:
                 {context}
 
                 The level of the questions should be {level}, being 1 the easiest and 4 the most difficult.
-                Your answer should be a list of json objects like the example:
+                Your answer should be a list of json objects and only the json, without any text like the example (correct option is the index in the options array of the solution (from 0 to 3)):
                 [{{
                 "question":"What size are the ninja turtles?"
                 "options":["5 meters", "All options are correct", "1.2 cm", "2 meters"]
+                "correctOption": 0
                 }},
                 ...]
                 '''
-        print(prompt)
+        # print(prompt)
         ## Generate the questions and answers with the LLM aid
         if mode == 'Local':
-            answer = ollama.chat(model=model, messages=prompt).message
+            answer = ollama.chat(model=model, messages=[{"role":"user", "content":prompt}]).message
         elif mode == 'Mistral':
-            answer = model.chat.complete(model= "mistral-small-latest", messages = prompt).choices[0].message
+            answer = model.chat.complete(model= "mistral-small-latest", messages = [{"role":"user", "content":prompt}]).choices[0].message
         elif mode == 'HuggingFace':
-            answer = model.chat.completions.create(model="meta-llama/Meta-Llama-3.1-8B-Instruct", messages= prompt).choices[0].message
-        print(answer)
+            answer = model.chat.completions.create(model="meta-llama/Meta-Llama-3.1-8B-Instruct", messages= [{"role":"user", "content":prompt}]).choices[0].message
+        # print(answer)
+        print(checkQuestions(answer.content))
         questions += checkQuestions(answer.content) # Check the format is correct
+        # print(checkQuestions(answer.content))
+    print('All questions:')
+    print(questions)
     ## Choose the best nQuestions
     prompt = f'''
              Choose the best {nQuestions} (exactly {nQuestions}, no one more, no one less) adjusted to the level {level}, being 1 the easiest and 4 the most difficult.
-             Choose based on relevance. Discard the ones that might have been errors. 
-             Answer only with the number before the question 
-             Example answer: 
-             1, 2, 7, 9
+             Choose based on relevance. Choose wisely according to the level and so they aren't all about the same (Not so repetitive).Discard the ones that might have been errors. 
+             Answer only with the number before the question. Don't explain anything. Answer only and just with the answers id. NOTHING ELSE PLEASE
+             Example answer: "1, 2, 7, 9"
              Questions to evaluate:
 
              '''
@@ -307,22 +317,26 @@ def createQuestionnaireHTML(pdfs, level, nQuestions, model, redis, mode, maxChun
         for n, option in enumerate(question['options']):
             prompt += f"\n\t {chr(ord('a') + n)}: {option}"
     if mode == 'Local':
-        answer = ollama.chat(model=model, messages=prompt).message
+        answer = ollama.chat(model=model, messages=[{"role":"user", "content":prompt}]).message
     elif mode == 'Mistral':
-        answer = model.chat.complete(model= "mistral-small-latest", messages = prompt).choices[0].message
+        answer = model.chat.complete(model= "mistral-small-latest", messages = [{"role":"user", "content":prompt}]).choices[0].message
     elif mode == 'HuggingFace':
-        answer = model.chat.completions.create(model="meta-llama/Meta-Llama-3.1-8B-Instruct", messages= prompt).choices[0].message
+        answer = model.chat.completions.create(model="meta-llama/Meta-Llama-3.1-8B-Instruct", messages= [{"role":"user", "content":prompt}]).choices[0].message
     number = ''
     print(answer)
+    answer = re.search(r"([\d,\s]+)", answer.content, re.DOTALL).group()
     finalQuestions = []
     for char in answer: # Detect numbers in answer
         if char in [str(i) for i in range(10)]:
             number += char
         else:
             if number != '':
-                finalQuestions.append(questions[number - 1])
+                finalQuestions.append(questions[int(number) - 1])
                 print(number, end= ', ')
             number = ''
+    if number.isdigit(): # For the last one
+                finalQuestions.append(questions[int(number) - 1])
+                print(number)
     print()
     print(finalQuestions)
     return finalQuestions

@@ -39,12 +39,12 @@ if MODE == 'Mistral':
     MODEL = Mistral(api_key=os.getenv('API_MISTRAL'))
     MODEL_EMBEDDING = MODEL
     DIMENSION = 1024
-if MODE == 'HuggingFace':
+elif MODE == 'HuggingFace':
     MODEL = InferenceClient(token=os.getenv('API_HUGGINGFACE'))
     MODEL_EMBEDDING = SentenceTransformer("intfloat/multilingual-e5-base", device='cpu')
     DIMENSION = 768
 elif MODE != 'Local':
-    raise Exception('MODE enviroment variable supported types are: [LOCAL, MISTRAL]')
+    raise Exception(f'MODE enviroment variable supported types are: [Local, Mistral, HuggingFace]. MODE selected: {MODE}')
 
 
 ## Create conexion to db and create index to search embeddings
