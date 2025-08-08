@@ -21,6 +21,7 @@ load_dotenv('.env')
 print(os.getenv('CHUNK_SIZE'))
 print(os.getenv('MODE'))
 
+SAVED_QUESTIONNAIRES = {} # Not persistent
 
 ## Load enviroment variables
 MODE = os.getenv('MODE')
@@ -281,9 +282,19 @@ def createQuestionnaire():
     nQuestions = message['number_of_questions']
     print(pdfs, level, nQuestions)
         # return jsonify({'success':False, "error_code":108, 'description':f"Chat {hash} can't start with a number."})
-    return jsonify({"success":True, "questions":createQuestionnaireHTML(pdfs, int(level), int(nQuestions), MODEL, REDIS_DB, MODE, MAX_CHUNKS)})
+    questionnaireId = str(datetime.now().timestamp())
+    SAVED_QUESTIONNAIRES[questionnaireId] = createQuestionnaireHTML(pdfs, int(level), int(nQuestions), MODEL, REDIS_DB, MODE, MAX_CHUNKS)
+    print(questionnaireId)
+    print(SAVED_QUESTIONNAIRES)
+    return jsonify({"success":True, "questionnaireId":questionnaireId})
     
-
+@app.route("/questionnaire/<questionnaireId>", methods = ['GET'])
+def getQuestionnaire(questionnaireId):
+    print(SAVED_QUESTIONNAIRES)
+    if questionnaireId in SAVED_QUESTIONNAIRES:
+        return jsonify({'success':True, 'questions': SAVED_QUESTIONNAIRES[questionnaireId]})
+    else: 
+        return jsonify({'success':False, "error_code":111, 'description':f"The questionnaire {questionnaireId} does not exist"})
 
 @app.route("/")
 def index():

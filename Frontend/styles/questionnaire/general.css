@@ -1,0 +1,67 @@
+html {
+    background-color: #f3f8fe;
+}
+
+/* Header */
+
+.header{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #ccc;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: calc(100% - 10px);
+    margin-left: 5px;
+    margin-right: 5px;
+}
+
+.title-and-grade {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap:30px;
+    padding-left: 15px;
+}
+
+.grade {
+    padding-top: 10px;
+}
+
+.header-buttons {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.button {
+    background-color: #ffeccc;
+    color:  #895200;
+    border-radius: 10px;
+    border-width: 0px;
+    width: 120px;
+    height: 30px;
+    cursor: pointer;
+}
+
+.button:hover {
+    color: #ffeccc;
+    background-color:  #895200;
+}
+
+.submit-button {
+    width: 150px;
+    height: 50px;;
+}
+
+/* Content */
+
+#content {
+    margin-top: 100px;
+    overflow-y: auto;
+}
+
+.question-form {
+    padding-left: 20px;
+}

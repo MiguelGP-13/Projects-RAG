@@ -396,26 +396,27 @@ function createQuestionnaire () {
         alert('You must select at least one document to be quizzed about!')
     }
     else  {
-    // send files to backend, create questionnaire! => New page
-    fetch('http://' + apiHost + ':13001/createQuestionnaire' , {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-          },
-        body: JSON.stringify({
-            "pdfs_array":files,
-            "level":levels[difficulty],
-            "number_of_questions":questionnaireSlider.value
-        }),
-    })
-    .then(response => response.json()).catch(()=>alert('Backend api not ready, createQuestionnaire'))
-    .then(data => {
-        if (data.success) {
-            data.questions
-        }
-    })
+        // send files to backend, create questionnaire! => New page
+        fetch('http://' + apiHost + ':13001/createQuestionnaire' , {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                "pdfs_array":files,
+                "level":levels[difficulty],
+                "number_of_questions":questionnaireSlider.value
+            }),
+        })
+        .then(response => response.json()).catch(()=>alert('Backend api not ready, createQuestionnaire'))
+        .then(data => {
+            if (data.success) {
+                const win = window.open('questionnaire.html?id='+data.questionnaireId);
+                selectMode('RAG');
+            }
+        })
     }
-  }
+}
 
 function openFile(event) {
     const filename = event.target.getAttribute('pdf');

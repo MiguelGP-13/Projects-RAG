@@ -105,19 +105,20 @@ def create_embeddings_pag(text, chunk_size, embedder, redis, name, page, mode):
     print('Creating embeddigns', len(new_chunks))
     i = -1
     if len(new_chunks) > 0: # Don't call model if we don't have chunks to encode
+        print('Embedding')
         if mode == 'Local':
             embeddings = ollama.embed(model=embedder, input=[j[1] for j in new_chunks]).embeddings
         elif mode == 'Mistral':
             embeddings_batch_response = embedder.embeddings.create(
                 model= "mistral-embed", inputs=[j[1] for j in new_chunks])
             embeddings = [k.embedding for k in embeddings_batch_response.data]
-            embeddings = ollama.embed(model=embedder, input=[j[1] for j in new_chunks]).embeddings
         elif mode == 'HuggingFace':
             embeddings = embedder.encode([j[1] for j in new_chunks])
         ## We save in the redis db
-        print('Saving')
+        print('Saving', len(embeddings), embeddings[0][0])
         for i, embedding in enumerate(embeddings):
             redis.hset(new_chunks[i][0], mapping={"embedding":to_blob(np.array(embedding)),"hash":new_chunks[i][2], "reference":new_chunks[i][1]})
+    print(i)
     return i + 1
 
 def create_embeddings_pdf(pdf_path: str, chunk_size: int, embedder, redis, mode):
@@ -137,6 +138,17 @@ def create_embeddings_pdf(pdf_path: str, chunk_size: int, embedder, redis, mode)
     print(f"¡{chunks} creados!")
     return chunks
 
+def cleanReferences(references):
+    cleanReferences = {}
+    for reference in references:
+        if "documentos:" in reference:
+            reference = reference.replace("documentos:",'') # We remove the prefix 'documentos:' from each reference
+        document, page, chunk = reference.split(':') # We split into [document, page, chunk]
+        if document in cleanReferences:
+            cleanReferences[document] += f', {page}:{chunk}'
+        else:
+            cleanReferences[document] = f'[{page}:{chunk}'
+    return [f"{document} : {cleanReferences[document]}]" for document in cleanReferences.keys()]
 
 def query(prompt, model, embedder, redis, search_index, N, mode, actual_chat):
     '''
@@ -175,12 +187,12 @@ def query(prompt, model, embedder, redis, search_index, N, mode, actual_chat):
         }
     ).docs
     print(context)
-    reference_list = [doc.id for doc in context]
+    reference_list = cleanReferences([doc.id for doc in context])
 
     ## Create the prompt
-    input_message = "Utilizando solo y unicamente este contexto, responde a la pregunta del final. Contexto:\n" + \
-    f"\n-----\n".join([doc.reference.decode('utf-8') for doc in context]) + \
-    f"\nPregunta: {prompt}."
+    input_message = "Using only and exclusively this context, answer the next question in the same language as the context. Context:\n" + \
+    f"\n-----\n".join([doc.reference.encode('utf-8').decode('utf-8') for doc in context]) + \
+    f"\nQuestion: {prompt}."
     print(input_message)
 
     ## Generate the answer with the LLM aid
@@ -212,7 +224,7 @@ def query(prompt, model, embedder, redis, search_index, N, mode, actual_chat):
     ## Save chat
     actual_chat = saveChat(prompt, answer, actual_chat, 'RAG', str(reference_list))
 
-    return answer, str(reference_list)[1:-1], [doc.reference.decode('utf-8') for doc in context], actual_chat
+    return answer, str(reference_list)[1:-1], [doc.reference.encode('utf-8').decode('utf-8') for doc in context], actual_chat
 
 def LLMChat(prompt, model, mode, actual_chat):
     '''
@@ -276,12 +288,12 @@ def createQuestionnaireHTML(pdfs, level, nQuestions, model, redis, mode, maxChun
         print(chosen)
         context = redis.hget(chosen,"reference").decode('utf-8')
         prompt = f'''
-                Create {max(5,nQuestions//nChunks)} test questions with 4 possible answers of this information. 
+                Create {max(5,nQuestions//nChunks)} test questions with 4 possible answers of this information (in the same language as the infromation). 
                 Using exclusively this information:
                 {context}
 
-                The level of the questions should be {level}, being 1 the easiest and 4 the most difficult.
-                Your answer should be a list of json objects and only the json, without any text like the example (correct option is the index in the options array of the solution (from 0 to 3)):
+                The level of the questions should be {level}, being 1 the easiest and 4 the most difficult. Make all options plausible, making it more difficult and realistic (all answers can seem the correct one if you don't know about the aspects inquired), specially in the hardests level.
+                Your answer should be a list of json objects and only the json, without any text like the example (correct option is the index in the options array of the solution, from 0 to 3):
                 [{{
                 "question":"What size are the ninja turtles?"
                 "options":["5 meters", "All options are correct", "1.2 cm", "2 meters"]
@@ -306,12 +318,13 @@ def createQuestionnaireHTML(pdfs, level, nQuestions, model, redis, mode, maxChun
     ## Choose the best nQuestions
     prompt = f'''
              Choose the best {nQuestions} (exactly {nQuestions}, no one more, no one less) adjusted to the level {level}, being 1 the easiest and 4 the most difficult.
-             Choose based on relevance. Choose wisely according to the level and so they aren't all about the same (Not so repetitive).Discard the ones that might have been errors. 
+             Choose based on relevance. Choose wisely according to the level and making sure they cover various topics.Discard the ones that might have been errors, or if they are repetitive. 
              Answer only with the number before the question. Don't explain anything. Answer only and just with the answers id. NOTHING ELSE PLEASE
              Example answer: "1, 2, 7, 9"
              Questions to evaluate:
 
              '''
+    print(prompt)
     for i, question in enumerate(questions):
         prompt += "\n" + str(i+1) + ":" + question['question']
         for n, option in enumerate(question['options']):

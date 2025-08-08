@@ -135,6 +135,7 @@ files.html: Page to upload files for the RAG to use.
 | 108  | Conversation name can't start with a number |
 | 109  | Conversation name can't be empty |
 | 110  | Incorrect query mode |
+| 111  | The questionnaire you are trying to find does not exist |
 
 ##  Launch Redis DB:
 docker run -d --name redis-stack -p 6379:6379 -p 8361:8001 -e REDIS_ARGS="--requirepass `password`" redis/redis-stack:latest
@@ -145,9 +146,14 @@ docker run -d --name redis-stack -p 6379:6379 -p 8361:8001 -e REDIS_ARGS="--requ
 
 RAG doesn't sends the answer => When reloaded, it appears (loading the chat has the answer) # error with chat selection
 
-When selecting one choice, put ramdom number instead of 0
+  When selecting one choice, put ramdom number instead of 0
+
+  Make questionnaires persistent (with their name) and maybe hide correct option until submit (via API)
+
+  Add tick/cross to questions
 
 When chat answers, it deletes the question and appears strangely
 
 Fix checking if chat exists when selecting chat
 
+when uploading various files, only one appears in the page, unless you refresh

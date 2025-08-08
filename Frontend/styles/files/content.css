@@ -38,6 +38,11 @@
     cursor: pointer;
 }
 
+.button:hover {
+    color: #ffeccc;
+    background-color:  #895200;
+}
+
 .files {
     text-align: center;
     color: white;
