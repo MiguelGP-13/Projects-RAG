@@ -116,8 +116,31 @@ files.html: Page to upload files for the RAG to use.
 {"success": true, "deleted": "id.json"}
 ```
 
+### 10. POST /createQuestionnaire
+*Payload*:  
+```json
+{"pdfs_array":["PDF NAME 1", "PDF NAME 2", "..."],
+"level":2, // From 1 to 4
+"number_of_questions":5}
+```
+
+*Answer*:  
+```json
+{"success": true, "questionnaireId": 1234}
+```
+### 11. GET /questionnaire/<id>
+*Answer*:  
+```json
+{"success": true, 
+"questions": [{"question":"",
+                "options": ["..."],
+                "correctOption":1}]
+}
+```
+
 ### 10. GET /  
 *Answer*: Serves `main.html` from frontend
+
 
 ## Error codes:
 
@@ -145,6 +168,7 @@ docker run -d --name redis-stack -p 6379:6379 -p 8361:8001 -e REDIS_ARGS="--requ
 ## Errors
 
 RAG doesn't sends the answer => When reloaded, it appears (loading the chat has the answer) # error with chat selection
+When uploading various files, only one appears in the page, unless you refresh
 
   When selecting one choice, put ramdom number instead of 0
 
@@ -152,8 +176,7 @@ RAG doesn't sends the answer => When reloaded, it appears (loading the chat has 
 
   Add tick/cross to questions
 
-When chat answers, it deletes the question and appears strangely
+When chat answers, it deletes the question and appears strangely => Only sometimes?
 
-Fix checking if chat exists when selecting chat
+Fix checking if chat exists when selecting chat => For development mainly
 
-when uploading various files, only one appears in the page, unless you refresh
