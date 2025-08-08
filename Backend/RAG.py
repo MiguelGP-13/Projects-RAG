@@ -148,7 +148,10 @@ def cleanReferences(references):
             cleanReferences[document] += f', {page}:{chunk}'
         else:
             cleanReferences[document] = f'[{page}:{chunk}'
-    return [f"{document} : {cleanReferences[document]}]" for document in cleanReferences.keys()]
+    result = ''
+    for doc in [f"{document} : {cleanReferences[document]}]" for document in cleanReferences.keys()]:
+        result += doc + ', '
+    return '[' + result[:-2] + ']'
 
 def query(prompt, model, embedder, redis, search_index, N, mode, actual_chat):
     '''
