@@ -41,10 +41,15 @@
 					</button>
 					<hr class="custom-line">
 					<div class="chats-title">
-						<p class="navbar-titles">Chats</p>
+						<div class="tab">
+						<button id="chatsSelector" class="tablinks" onclick="selectSavedtoShow('chats')">Chats</button>
+						<button id="questSelector" class="tablinks" onclick="selectSavedtoShow('questionnaires')">Questionnaires</button>
+						</div>
 						<button class="new-chat-button js-new-chat-button"><img class="plus-logo" src="images/plus_icon.png"></button>
 					</div>
-					<div class="open-chats">
+					<div class="open-chats tabcontent" id="chats">
+					</div>
+					<div class="open-questionnaires tabcontent" id="questionnaires">
 					</div>
 					
 					<button class="signature" onclick="window.open('https://github.com/MiguelGP-13', '_blank')">MGP</button>
@@ -64,7 +69,7 @@
 		<div class="popup-container">
 		</div>
 		
-		<div class="questionnaire js-questionnaire">
+		<div class="questionnairePage js-questionnaire">
 			<h1 class="files">Select Files for Questionnaire </h1>
 			<div class="questionnaire-files js-questionnaire-files"></div>
 			<h2 class="files">Options</h2>

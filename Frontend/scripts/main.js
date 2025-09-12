@@ -36,31 +36,44 @@ function hidePopup () {
     popup.innerHTML = '';
 }
 
-function createChatSelector(realName, id) {
+
+function createSelector(realName, id, mode) {
     const button = document.createElement("button");
-    button.classList.add("chat");
+    console.log("Mode:" + mode);
+    button.classList.add(mode);
     button.id = id;
     button.innerHTML = `
         <p>${realName}</p>
-        <img src="images/closedBin.png" class="delete-chat" chat="${id}">`;
-    // Insert at the top
+        <img src="images/closedBin.png" class="delete-${mode}" chat="${id}">`;
+    
+    const deleteButton = button.querySelector(`.delete-${mode}`);
+    deleteButton.addEventListener('mouseover', () => {
+        deleteButton.src = 'images/openBin.png';
+    });
+    deleteButton.addEventListener('mouseout', () => {
+        deleteButton.src = 'images/closedBin.png';
+    });
+    if (mode === "chat") {
     openChats.insertBefore(button, openChats.firstChild);
     requestAnimationFrame(() => {
         console.log("Button " + button.id + " was registered");
         button.addEventListener('click', () => {
             selectChat(id);
         });
-        const deleteButton = button.querySelector('.delete-chat');
-        deleteButton.addEventListener('mouseover', () => {
-            deleteButton.src = 'images/openBin.png';
-        });
-        deleteButton.addEventListener('mouseout', () => {
-            deleteButton.src = 'images/closedBin.png';
-        });
         deleteButton.addEventListener('click', deleteChat);
     });
+    }
+    else if (mode === "questionnaire") {
+        openQuestionnaires.insertBefore(button, openQuestionnaires.firstChild);
+        requestAnimationFrame(() => {
+            console.log("Button " + button.id + " was registered");
+            button.addEventListener('click', () => {
+                selectQuestionnaire(id);
+            });
+            deleteButton.addEventListener('click', undefined);
+        });
+    }
 }
-
 
 function createChat (event) {
     console.log('send new chat clicked: '+ event.target)
@@ -77,7 +90,7 @@ function createChat (event) {
     .then(data => {
         if (data.success) {
             // Create the button to select the chat
-            createChatSelector(realName, data.id)
+            createSelector(realName, data.id)
             // Remove the popup 
             hidePopup();            
             // Select the new chat
@@ -202,6 +215,7 @@ function sendMessage() { // Sends a message to the RAG, and writes the answer
 }
 
 function loadPage () {
+    // Fetch chats
     fetch('http://' + apiHost + ':13001/chats', {
     method: 'GET'})
     .then(response => response.json()).catch(() => alert('Backend API not ready, loadPage'))
@@ -211,11 +225,10 @@ function loadPage () {
             alert("Error code: " + data.error_code + "\n Description: " + data.description);
             return
             }
-        
         // Create the chat buttons at the navbar
         openChats.innerHTML = ''
         data.chats.forEach((element) => {
-            createChatSelector(element.realName, element.id)
+            createSelector(element.realName, element.id, "chat")
         })
         console.log(chatSelected);
         if (chatSelected) {
@@ -232,7 +245,24 @@ function loadPage () {
             </div>`;
         }
     });
-    }
+
+    // Fetch questionnaires
+    fetch('http://' + apiHost + ':13001/questionnaires', {
+    method: 'GET'})
+    .then(response => response.json()).catch(() => alert('Backend API not ready, loadPage'))
+    .then(data => { // Generates html from the questionnaires available
+        console.log("Questionnaires received: " + data);
+        if (!data.success) { // Something did not work
+            alert("Error code: " + data.error_code + "\n Description: " + data.description);
+            return
+            }
+        
+        // Create the questionnaires buttons at the navbar
+        openQuestionnaires.innerHTML = ''
+        data.questionnaires.forEach((element) => {
+            createSelector(element.realName, element.id, "questionnaire")
+        })
+    });}
 
 function loadConversation (id) {
     fetch('http://' + apiHost + ':13001/chats/' + id, {
@@ -317,6 +347,11 @@ function selectChat (id) {
     localStorage.setItem("chatSelected", chatSelected);
 }
 
+function selectQuestionnaire (id) {
+    const win = window.open('questionnaire.html?id='+id);
+    selectMode('RAG');
+}
+
 function selectMode (newMode) {
     questionnaire.style.zIndex = "-1";
     console.log("New mode selected: " + newMode);
@@ -384,7 +419,7 @@ function popupNewQuestionnaire () {
 }
 
 function createQuestionnaire () {
-    const checkboxes = document.querySelectorAll('.questionnaire input[type="checkbox"]');
+    const checkboxes = document.querySelectorAll('.js-questionnaire input[type="checkbox"]');
     const files = [];
     checkboxes.forEach(cb => {
       if (cb.checked) {
@@ -442,6 +477,33 @@ function updateValue(val) { // Update value for slider
     document.getElementById("valueDisplay").textContent = val;
 }
 
+function selectSavedtoShow(folder) {
+    console.log(folder);
+  // Declare all variables
+  var i, tabcontent, tablinks;
+
+  // Get all elements with class="tabcontent" and hide them
+  tabcontent = document.getElementsByClassName("tabcontent");
+  for (i = 0; i < tabcontent.length; i++) {
+    tabcontent[i].style.display = "none";
+  }
+
+  // Get all elements with class="tablinks" and remove the class "active"
+  tablinks = document.getElementsByClassName("tablinks");
+  for (i = 0; i < tablinks.length; i++) {
+    tablinks[i].className = tablinks[i].className.replace(" active", "");
+  }
+
+  // Show the current tab, and add an "active" class to the button that opened the tab
+  document.getElementById(folder).style.display = "block";
+  if (folder === "chats") {
+    selectToSeeChatsButton.classList.add("active");
+  }
+  else if (folder === "questionaires") {
+    selectToSeeQuestButton.classList.add("active");
+  }
+}
+
 // Declaration of elements
 const levels = {
     "easy":1,
@@ -458,12 +520,15 @@ const input = document.querySelector('.js-input');
 const button = document.querySelector('.js-send-button');
 const chatSpace = document.querySelector('.js-chat-space');
 const openChats = document.querySelector('.open-chats');
+const openQuestionnaires = document.querySelector('.open-questionnaires');
 const newChatButton = document.querySelector('.js-new-chat-button');
 const popup = document.querySelector('.popup-container');
 const questionnaire = document.querySelector(".js-questionnaire");
 const questionnaireFiles = document.querySelector(".js-questionnaire-files");
 const questionnaireSlider = document.querySelector(".js-questionnaire .questionnaire-slider");
 const createQuestionnaireButton = document.querySelector(".js-questionnaire .js-create-questionnaire");
+const selectToSeeChatsButton = document.querySelector(".navbar #chatsSelector");
+const selectToSeeQuestButton = document.querySelector(".navbar #questSelector");
 
 // Listeners
 input.addEventListener('input', () => { // Listener for the input to disable the button
@@ -497,5 +562,6 @@ const apiHost = 'localhost'; // It runs on the browser
 selectMode('RAG');
 // popupNewQuestionnaire();
 loadPage();
+selectSavedtoShow("chats");
 button.disabled = input.value.trim() === '';
 questionnaire.style.zIndex = "-1"; // Hide the qustionaire

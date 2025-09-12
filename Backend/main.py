@@ -34,6 +34,7 @@ MAX_CHUNKS = 15#int(os.getenv('MAX_CHUNKS'))
 CONTEXT_SIZE = os.getenv('CONTEXT_SIZE')
 DOCUMENT_FOLDER = os.getenv('DOCUMENT_FOLDER')
 CHATS_FOLDER = os.getenv('CHATS_FOLDER')
+QUESTIONNAIRES_FOLDER = os.getenv('QUESTIONNAIRES_FOLDER')
 actual_chat = None
 
 if MODE == 'Mistral':
@@ -233,10 +234,10 @@ def get_chats():
                 realName = conv['name']
                 creationDate = conv['creationDate']
             conversations.append({"realName":realName, "id": hash, "creationDate":creationDate})#, "conversation":json.load(chatFile)}) # Name, conversation
-            conversations = sorted(conversations, key=lambda x: x['creationDate'], reverse=False)
+        conversations = sorted(conversations, key=lambda x: x['creationDate'], reverse=False)
         return jsonify({'success':True, 'chats':conversations})
     except Exception as e:
-        print('no ha ido')
+        print('It didn\'t work')
         return jsonify({'success':False, "error_code":0, 'description':f"Unexpected error ocurred while loading available chats: {e}"})
 
 @app.route("/chats/<id>", methods=['GET'])
@@ -255,7 +256,7 @@ def get_chat(id):
 def createChat(name):
     if not name:
         return jsonify({'success':False, "error_code":109, 'description':f"{name}: The chat name cannot be empty."})
-    hash = 'h' + md5(name.encode(), usedforsecurity= False).hexdigest() # The name is the hash of the chat's name
+    hash = 'c' + md5(name.encode(), usedforsecurity= False).hexdigest() # The name is the hash of the chat's name
     if hash in [i.split('.')[0] for  i in os.listdir(CHATS_FOLDER)]: # That name alredy exists
         return jsonify({'success':False, "error_code":106, 'description':f"Chat {hash} alredy exist."})
     # elif '.' in name: # Name can't have . in it's name
@@ -281,20 +282,43 @@ def createQuestionnaire():
     level = message['level']
     nQuestions = message['number_of_questions']
     print(pdfs, level, nQuestions)
-        # return jsonify({'success':False, "error_code":108, 'description':f"Chat {hash} can't start with a number."})
     questionnaireId = str(datetime.now().timestamp())
-    SAVED_QUESTIONNAIRES[questionnaireId] = createQuestionnaireHTML(pdfs, int(level), int(nQuestions), MODEL, REDIS_DB, MODE, MAX_CHUNKS)
+    n_questionaires = sum(1 for f in os.listdir(QUESTIONNAIRES_FOLDER) if os.path.isfile(os.path.join(QUESTIONNAIRES_FOLDER, f)))
+    with open(QUESTIONNAIRES_FOLDER + '/' + 'q' + questionnaireId + '.json','w') as f:
+        json.dump({"name": f"Questionnaire #{n_questionaires + 1}","questions": createQuestionnaireHTML(pdfs, int(level), int(nQuestions), MODEL, REDIS_DB, MODE, MAX_CHUNKS), "creationDate": datetime.now().timestamp()}, f)
+    
     print(questionnaireId)
-    print(SAVED_QUESTIONNAIRES)
     return jsonify({"success":True, "questionnaireId":questionnaireId})
     
-@app.route("/questionnaire/<questionnaireId>", methods = ['GET'])
+@app.route("/questionnaires/<questionnaireId>", methods = ['GET'])
 def getQuestionnaire(questionnaireId):
-    print(SAVED_QUESTIONNAIRES)
-    if questionnaireId in SAVED_QUESTIONNAIRES:
-        return jsonify({'success':True, 'questions': SAVED_QUESTIONNAIRES[questionnaireId]})
+    if questionnaireId in os.listdir(QUESTIONNAIRES_FOLDER):
+        with open(QUESTIONNAIRES_FOLDER + '/' + questionnaireId + '.json', 'r') as questionnaireFile:
+            questionnaire = json.load(questionnaireFile)
+        return jsonify({'success':True, 'questionnaires': questionnaire})
     else: 
         return jsonify({'success':False, "error_code":111, 'description':f"The questionnaire {questionnaireId} does not exist"})
+
+@app.route("/questionnaires", methods=['GET'])
+def get_questionnaires():
+    try:
+        if not os.path.isdir(QUESTIONNAIRES_FOLDER):
+            print('Questionnaires folder not found, creating one: ',QUESTIONNAIRES_FOLDER)
+            os.mkdir(CHATS_FOLDER)
+        paths = [file for file in os.listdir(QUESTIONNAIRES_FOLDER)]
+        questionnaires = []
+        for path in paths:
+            hash = path.split('.')[0]
+            with open(QUESTIONNAIRES_FOLDER + '/' + path, 'r') as f:
+                q = json.load(f)
+                realName = q['name']
+                creationDate = q['creationDate']
+            questionnaires.append({"realName":realName, "id": hash, "creationDate":creationDate})#, "conversation":json.load(chatFile)}) # Name, conversation
+        questionnaires = sorted(questionnaires, key=lambda x: x['creationDate'], reverse=False)
+        return jsonify({'success':True, 'questionnaires':questionnaires})
+    except Exception as e:
+        print('It didn\'t work')
+        return jsonify({'success':False, "error_code":0, 'description':f"Unexpected error ocurred while loading available questionnaires: {e}"})
 
 @app.route("/")
 def index():

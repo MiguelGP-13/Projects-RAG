@@ -1,13 +1,13 @@
-.questionnaire {
+.questionnairePage {
     z-index: -1;
     background-color: #a094a9;
-    width: calc(100% - 180px);
+    width: calc(100% - 215px);
     height: calc(100% - 110px);
     position: absolute;
     margin-top: 90px;
-    margin-left: 160px;
-    padding-left: 20px;
+    margin-left: 195px;
     margin-bottom: 20px;
+    padding-left: 10px;
 }
 
 /* Files selector css */
@@ -98,7 +98,7 @@
     display: flex;
 }
 
-.questionnaire .level {
+.questionnairePage .level {
     background-color: #d5d1aa;
     color:  #895200;
     border: 0.75px solid  #895200;
@@ -107,7 +107,7 @@
     cursor: pointer;
     margin: 0px;
 }
-.questionnaire .level:hover {
+.questionnairePage .level:hover {
     background-color: #ffeccc;
     color:  #895200;
     border: 0.75px solid  #895200;
@@ -117,7 +117,7 @@
     margin: 0px;
 }
 
-.questionnaire .level.active {
+.questionnairePage .level.active {
     background-color: #ffeccc;
     color:  #895200;
     border: 0.75px solid  #895200;
@@ -127,13 +127,13 @@
     margin: 0px;
 }
 
-.questionnaire .level.left {
+.questionnairePage .level.left {
     border-top-left-radius: 15px;
     border-bottom-left-radius: 15px;
     margin-left: 76px;
 }
 
-.questionnaire .level.right {
+.questionnairePage .level.right {
     border-top-right-radius: 15px;
     border-bottom-right-radius: 15px;
 }

@@ -1,7 +1,7 @@
 # Projects-RAG
 Created a RAG using 3 free options:
-- HuggingFace (LLM online, embeddings local) with higher limit. Recommended
-- Mistral (full online), low limit
+- Mistral (full online)
+- HuggingFace (LLM online, embeddings local)
 - Ollama (local)
 It uses a python backend with an html/js/css frontend to interact with it.
 
@@ -128,7 +128,16 @@ files.html: Page to upload files for the RAG to use.
 ```json
 {"success": true, "questionnaireId": 1234}
 ```
-### 11. GET /questionnaire/<id>
+### 11. GET /questionnaires/<id>
+*Answer*:  
+```json
+{"success": true, 
+"questions": [{"question":"",
+                "options": ["..."],
+                "correctOption":1}]
+}
+
+### 11. GET /questionnaires
 *Answer*:  
 ```json
 {"success": true, 

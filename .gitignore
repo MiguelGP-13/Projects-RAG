@@ -7,5 +7,6 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-Backend/documentos/
+Backend/documents/
 Backend/chats/
+Backend/questionnaires/
