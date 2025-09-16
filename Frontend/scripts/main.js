@@ -611,7 +611,7 @@ createQuestionnaireButton.addEventListener('click', createQuestionnaire)
 // Code to initialize page correctly
 const apiHost = 'localhost'; // It runs on the browser
 selectMode('RAG');
-popupNewQuestionnaire();
+// popupNewQuestionnaire();
 loadPage();
 button.disabled = input.value.trim() === '';
 questionnaire.style.zIndex = "-1"; // Hide the qustionaire

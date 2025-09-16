@@ -28,7 +28,7 @@ services:
       - RAG_network
     
   frontend:
-    image: miguelgp13/rag-frontend:2.0.0
+    image: miguelgp13/rag-frontend:2.0.1
     container_name: frontend
     ports:
       - "1380:80"
