@@ -1,12 +1,13 @@
-# Compose
+# Docuchat with docker
 ## Prerequisites
 Have Docker desktop downloaded.
 
 If you don't have it, you can download it [here](https://docs.docker.com/get-started/introduction/get-docker-desktop/).
 
 ## Quick start
-Download the docker-compose and create a `.env` (called .env) file in the same directory with the following variables:
-```env
+1. Download Docuchat.zip and unzip it.
+2. create a `.env` (called .env) file inside the Docuchat directory with the following variables:
+```bash
 DB_PASSWORD=<REDIS_PASSWORD>
 API_MISTRAL=<Mistral API>
 API_HUGGINGFACE=<HuggingFace API>
@@ -14,24 +15,24 @@ API_HUGGINGFACE=<HuggingFace API>
 > [!NOTE] 
 > The only api key needed is the one you are going to use shown in the settings.env file
 ### Mistral (recommended)
-To get a Mistral API:
+To get a Mistral API key:
 1. Create an account or login if you alredy have one at [Mistral](https://auth.mistral.ai/ui/login).
 2. Go to the [api key](https://console.mistral.ai/api-keys) section and click on `Create a new Key`.
 3. Copy the key and put it in the .env file.
 
 ### HuggingFace (higher free limit)
 In `settings.env`:
-    Change MODE from `MODE=Mistral` to `MODE=HuggingFace`
+    Change the MODE from `MODE=Mistral` to `MODE=HuggingFace`
 In `docker-compose.yaml`:
     In the line 16, change:
-    ```yaml
-    image: miguelgp13/rag-backend:2.0.0-lite
-    ```
-    for:
-    ```yaml
-    image: miguelgp13/rag-backend:2.0.0
-    ```
-To get a HuggingFace API:
+```yaml
+image: miguelgp13/rag-backend:2.0.0-lite
+```
+for:
+```yaml
+image: miguelgp13/rag-backend:2.0.0
+```
+To get a HuggingFace API token:
 1. Create an account or login if you alredy have one at [HuggingFace](https://huggingface.co/login).
 2. Go to the [Acess Tokens](https://huggingface.co/settings/tokens) section and click on `Create new token`.
 3. Copy the key and put it in the .env file.
