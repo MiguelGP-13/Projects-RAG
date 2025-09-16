@@ -161,7 +161,7 @@ files.html: Page to upload files for the RAG to use.
 | 102  | The path of the file provided doesn't exist |
 | 103  | Error occurred while fetching files |
 | 104  | No files arrived to the backend |
-| 105  | The conversation you are trying to find does not exist |
+| 105  | The file you are trying to find does not exist |
 | 106  | Conversation with that name already exists |
 | 107  | Conversation name can't have dots (".") |
 | 108  | Conversation name can't start with a number |

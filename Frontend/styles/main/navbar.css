@@ -1,3 +1,4 @@
+/* General */
 .navbar {
 	background-color: #f3f8fe;
 	width: 195px;
@@ -13,7 +14,7 @@
 	z-index: 3;
 }
 
-
+/* Modes */
 .navbar .title-left {
 	cursor: pointer;
 	background-color: #f3f8fe;
@@ -46,6 +47,7 @@
 	border: none;
 }
 
+/* Chats and questionnaires saved */
 .chats-title {
 	display:flex;
 	justify-content: space-between;
@@ -124,13 +126,13 @@
  /* Style the tab */
 .tab {
   overflow: hidden;
-  border: 1px solid #ccc;
   background-color: #f1f1f1;
 }
 
 /* Style the buttons that are used to open the tab content */
 .tab button {
-  background-color: inherit;
+  background-color: #f3f8fe;
+  text-decoration: underline;
   float: left;
   border: none;
   outline: none;
@@ -139,12 +141,8 @@
   transition: 0.3s;
 }
 
-/* Change background color of buttons on hover */
-.tab button:hover {
-  background-color: #ddd;
+.tab button:hover,
+.tab button.active {
+  background-color: #d3d7e3;
 }
 
-/* Create an active/current tablink class */
-.tab button.active {
-  background-color: #ccc;
-}

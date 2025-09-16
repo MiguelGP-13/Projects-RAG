@@ -282,20 +282,38 @@ def createQuestionnaire():
     level = message['level']
     nQuestions = message['number_of_questions']
     print(pdfs, level, nQuestions)
-    questionnaireId = str(datetime.now().timestamp())
+    questionnaireId = str(int(datetime.now().timestamp()))
     n_questionaires = sum(1 for f in os.listdir(QUESTIONNAIRES_FOLDER) if os.path.isfile(os.path.join(QUESTIONNAIRES_FOLDER, f)))
     with open(QUESTIONNAIRES_FOLDER + '/' + 'q' + questionnaireId + '.json','w') as f:
         json.dump({"name": f"Questionnaire #{n_questionaires + 1}","questions": createQuestionnaireHTML(pdfs, int(level), int(nQuestions), MODEL, REDIS_DB, MODE, MAX_CHUNKS), "creationDate": datetime.now().timestamp()}, f)
     
     print(questionnaireId)
-    return jsonify({"success":True, "questionnaireId":questionnaireId})
+    return jsonify({"success":True, "questionnaireId":'q' + questionnaireId, "name": f"Questionnaire #{n_questionaires + 1}"})
     
+@app.route("/renameQuestionnaire/<questionnaireId>", methods=["POST"])
+def renameQuestionnaire(questionnaireId):
+    message = request.json 
+    newName = message['name']
+    with open(QUESTIONNAIRES_FOLDER + '/' + questionnaireId + '.json', 'r') as questionnaireFile:
+        questionnaire = json.load(questionnaireFile)
+    questionnaire['name'] = newName
+    with open(QUESTIONNAIRES_FOLDER + '/' + questionnaireId + '.json', 'w') as questionnaireFile:
+        json.dump(questionnaire, questionnaireFile)
+    return jsonify({'success':True, "newName":newName})
+
+@app.route("/deleteQuestionnaire/<id>", methods=["POST"])
+def deleteQuestionnaire(id):
+    if id not in [i.split('.')[0] for  i in os.listdir(QUESTIONNAIRES_FOLDER)]: # That name alredy exists
+        return jsonify({'success':False, "error_code":105, 'description':f"Questionnaire {id} doesn't exist."})
+    os.remove(QUESTIONNAIRES_FOLDER + '/' + id + '.json')
+    return jsonify({'success':True, 'deleted': id + '.json'})
+
 @app.route("/questionnaires/<questionnaireId>", methods = ['GET'])
 def getQuestionnaire(questionnaireId):
-    if questionnaireId in os.listdir(QUESTIONNAIRES_FOLDER):
+    if questionnaireId + ".json" in os.listdir(QUESTIONNAIRES_FOLDER):
         with open(QUESTIONNAIRES_FOLDER + '/' + questionnaireId + '.json', 'r') as questionnaireFile:
             questionnaire = json.load(questionnaireFile)
-        return jsonify({'success':True, 'questionnaires': questionnaire})
+        return jsonify({'success':True, "name": questionnaire['name'] ,"questions": questionnaire['questions'], "creationDate": questionnaire['creationDate']})
     else: 
         return jsonify({'success':False, "error_code":111, 'description':f"The questionnaire {questionnaireId} does not exist"})
 
@@ -306,6 +324,7 @@ def get_questionnaires():
             print('Questionnaires folder not found, creating one: ',QUESTIONNAIRES_FOLDER)
             os.mkdir(CHATS_FOLDER)
         paths = [file for file in os.listdir(QUESTIONNAIRES_FOLDER)]
+        print(paths)
         questionnaires = []
         for path in paths:
             hash = path.split('.')[0]

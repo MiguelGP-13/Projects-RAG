@@ -44,7 +44,7 @@ function createSelector(realName, id, mode) {
     button.id = id;
     button.innerHTML = `
         <p>${realName}</p>
-        <img src="images/closedBin.png" class="delete-${mode}" chat="${id}">`;
+        <img src="images/closedBin.png" class="delete-${mode}" ${mode}="${id}">`;
     
     const deleteButton = button.querySelector(`.delete-${mode}`);
     deleteButton.addEventListener('mouseover', () => {
@@ -70,7 +70,11 @@ function createSelector(realName, id, mode) {
             button.addEventListener('click', () => {
                 selectQuestionnaire(id);
             });
-            deleteButton.addEventListener('click', undefined);
+            deleteButton.addEventListener('click', function(e) {
+                e.stopPropagation(); // Prevents the button's click from firing
+                e.preventDefault();  // Optional: prevents default behavior if needed
+                deleteQuestionnaire(e);
+            });
         });
     }
 }
@@ -90,7 +94,7 @@ function createChat (event) {
     .then(data => {
         if (data.success) {
             // Create the button to select the chat
-            createSelector(realName, data.id)
+            createSelector(realName, data.id, 'chat')
             // Remove the popup 
             hidePopup();            
             // Select the new chat
@@ -144,6 +148,35 @@ function deleteChat (event) { // We delete the chat with the same id as the butt
                 console.log("Chat doesn't exist alredy")
                 chatSelected = undefined; // Select no chat
                 localStorage.removeItem("chatSelected");
+                loadPage();
+            }
+            else {alert(`Unexpected error ${data.error_code}: ${data.description}`)}
+        }
+    })
+}
+
+
+function deleteQuestionnaire (event) { // We delete the chat with the same id as the button pressed
+    // Send the backend the order to delete that chat
+    fetch('http://' + apiHost + ':13001/deleteQuestionnaire/' + event.currentTarget.getAttribute('questionnaire'), {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+          },
+        body: JSON.stringify({}),
+    })
+    .then(response => response.json()).catch(()=>alert('Backend api not ready,deleteQuestionnaire'))
+    .then(data => {
+        if (data.success) {
+            chatSelected = undefined; // Select no chat
+            console.log('deleting questionnaire')
+            loadPage();
+            console.log('page loaded')
+        }
+        // Alert of errors
+        else {
+            if (data.error_code === 105) {
+                console.log("Questionnaire doesn't exist alredy")
                 loadPage();
             }
             else {alert(`Unexpected error ${data.error_code}: ${data.description}`)}
@@ -260,9 +293,17 @@ function loadPage () {
         // Create the questionnaires buttons at the navbar
         openQuestionnaires.innerHTML = ''
         data.questionnaires.forEach((element) => {
+            console.log(element.realName, element.id)
             createSelector(element.realName, element.id, "questionnaire")
         })
-    });}
+    });
+    if (savedtoShow) {
+        selectSavedtoShow(savedtoShow);
+    }
+    else {
+        selectSavedtoShow('chat');
+    }
+}
 
 function loadConversation (id) {
     fetch('http://' + apiHost + ':13001/chats/' + id, {
@@ -446,6 +487,7 @@ function createQuestionnaire () {
         .then(response => response.json()).catch(()=>alert('Backend api not ready, createQuestionnaire'))
         .then(data => {
             if (data.success) {
+                createSelector(data.name,data.questionnaireId,"questionnaire")
                 const win = window.open('questionnaire.html?id='+data.questionnaireId);
                 selectMode('RAG');
             }
@@ -479,6 +521,7 @@ function updateValue(val) { // Update value for slider
 
 function selectSavedtoShow(folder) {
     console.log(folder);
+    localStorage.setItem("savedtoShow", folder)
   // Declare all variables
   var i, tabcontent, tablinks;
 
@@ -499,7 +542,7 @@ function selectSavedtoShow(folder) {
   if (folder === "chats") {
     selectToSeeChatsButton.classList.add("active");
   }
-  else if (folder === "questionaires") {
+  else if (folder === "questionnaires") {
     selectToSeeQuestButton.classList.add("active");
   }
 }
@@ -516,6 +559,7 @@ let mode = undefined; // Mode of the app selected
 let difficulty = undefined; // Difficulty od the questionnaire
 let chatSelected = localStorage.getItem("chatSelected"); // Which chat is selected
 let newChatInput = undefined; // Will be defined when the newChat popup appears
+let savedtoShow = localStorage.getItem("savedtoShow")
 const input = document.querySelector('.js-input');
 const button = document.querySelector('.js-send-button');
 const chatSpace = document.querySelector('.js-chat-space');
@@ -562,6 +606,5 @@ const apiHost = 'localhost'; // It runs on the browser
 selectMode('RAG');
 // popupNewQuestionnaire();
 loadPage();
-selectSavedtoShow("chats");
 button.disabled = input.value.trim() === '';
 questionnaire.style.zIndex = "-1"; // Hide the qustionaire

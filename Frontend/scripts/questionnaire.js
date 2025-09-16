@@ -91,14 +91,6 @@ function clearQuiz() {
 //     })
 //     .catch(()=>alert('Backend api not ready, beforeunload'))
 // });
-const title = document.getElementById("quiz-title");
-
-  title.addEventListener("keydown", function (e) {
-    if (e.key === "Enter") {
-      e.preventDefault();         // Prevent new line
-      title.blur();               // Remove focus to end editing
-    }
-  });
 
 
 // Initialize page
@@ -110,7 +102,28 @@ gradeDisclaimer = document.querySelector('.grade');
 
 const params = new URLSearchParams(window.location.search);
 const quizId = params.get('id');
-fetch('http://' + apiHost + ':13001/questionnaire/'+quizId, {
+
+const title = document.getElementById("quiz-title");
+
+title.addEventListener("keydown", function (e) {
+  if (e.key === "Enter") {
+    e.preventDefault();         // Prevent new line
+    title.blur();               // Remove focus to end editing
+    // Change the Questionnaire name in the system
+    fetch('http://' + apiHost + ':13001/renameQuestionnaire/' + quizId, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+          },
+        body: JSON.stringify({
+          "name":title.innerHTML
+        }),
+    })
+  }
+});
+
+// Load Questionnaire
+fetch('http://' + apiHost + ':13001/questionnaires/'+quizId, {
     method: 'GET'})
     .then(response => response.json()).catch(() => alert('Backend API not ready, loadQuestionnaire'))
     .then(data => { 
@@ -120,6 +133,7 @@ fetch('http://' + apiHost + ':13001/questionnaire/'+quizId, {
         correctOptions = c;
         console.log(correctOptions, c)
         content.innerHTML = html;
+        title.innerHTML = data.name
       }
       else {
         alert("Error code: " + data.error_code + "\n Description: " + data.description);

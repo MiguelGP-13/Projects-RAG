@@ -50,6 +50,12 @@ html {
     background-color:  #895200;
 }
 
+.button:disabled {
+    cursor: not-allowed;
+    background-color:  #bbc0c5;
+    color: #895200;
+}
+
 .submit-button {
     width: 150px;
     height: 50px;;
@@ -65,3 +71,4 @@ html {
 .question-form {
     padding-left: 20px;
 }
+
