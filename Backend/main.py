@@ -13,11 +13,14 @@ from RAG import *
 
 import json
 
-# Only use in local version
-from dotenv import load_dotenv
+# Only used in local version
+if not os.getenv('DOCKER_MODE'):
+    print('DOCKER_MODE off')
+    from dotenv import load_dotenv
 
-load_dotenv('settings.env')  
-load_dotenv('.env')
+    load_dotenv('settings.env')  
+    load_dotenv('.env')
+
 print(os.getenv('CHUNK_SIZE'))
 print(os.getenv('MODE'))
 
@@ -37,6 +40,13 @@ CHATS_FOLDER = os.getenv('CHATS_FOLDER')
 QUESTIONNAIRES_FOLDER = os.getenv('QUESTIONNAIRES_FOLDER')
 actual_chat = None
 
+# Only in docker deployment
+if os.getenv('DOCKER_MODE') and len(os.listdir('/app/Backend/files')) == 0:
+    print('DOCKER_MODE on')
+    os.mkdir('/app/Backend/files/chats')
+    os.mkdir('/app/Backend/files/documents')
+    os.mkdir('/app/Backend/files/questionnaires')
+
 if MODE == 'Mistral':
     MODEL = Mistral(api_key=os.getenv('API_MISTRAL'))
     MODEL_EMBEDDING = MODEL
@@ -50,7 +60,11 @@ elif MODE != 'Local':
 
 
 ## Create conexion to db and create index to search embeddings
-REDIS_DB = redis.Redis(host='localhost', port=6379, password=DB_PASS)
+if os.getenv('DOCKER_MODE'):
+    host = 'redis'
+else:
+    host = 'localhost'
+REDIS_DB = redis.Redis(host=host, port=6379, password=DB_PASS)
 INDICE_REDIS = 'knn'
 if INDICE_REDIS.encode() not in REDIS_DB.execute_command("FT._LIST"):
     REDIS_DB.execute_command(
@@ -70,6 +84,13 @@ else:
 
 #### API backend ####
 def embedd_pdf(pdfs):
+    """
+    pdfs: str = pdf name 
+
+    return: json = Answer with names of the pdfs created and the number of chunks
+
+    Internal function to embedd pdfs
+    """
     print(pdfs)
     n_chunks = 0
     for pdf in pdfs:
@@ -77,7 +98,7 @@ def embedd_pdf(pdfs):
     
     return jsonify({'success':True, "pdfs_created":pdfs, "number_of_chunks": f"{n_chunks} new chunks were created"})
 
-app = Flask(__name__)
+app = Flask(__name__) # API
 CORS(app) 
 
 # Load all documents embedded to the database
@@ -97,6 +118,13 @@ def update_redis(): # list with pdf paths
 
 @app.route("/query/<queryMode>", methods=['POST'])
 def query_database(queryMode):
+    """
+    queryMode: str = RAG or chat. Determines if it uses the documents or the LLM info itself
+
+    return: json = LLM answer and references if they were used (text and id)
+
+    Returns the answer to a prompt calling the pertinent LLM and embedders.
+    """
     message = request.json
     if 'prompt' not in message.keys():
         return jsonify({'success':False,"error_code":100, 'description':f"The compulsary value \"prompt\" was not found in the json."})
@@ -119,6 +147,11 @@ def query_database(queryMode):
 
 @app.route('/add_doc', methods=['POST'])
 def add_file():
+    """
+    return: json = Path where the file was saved
+
+    Saves a file in the folder designated for documents
+    """
     ## Retrieve post data and flags
     message = request.json # Get file path
     if 'file_path' not in message.keys():
@@ -296,10 +329,11 @@ def renameQuestionnaire(questionnaireId):
     newName = message['name']
     with open(QUESTIONNAIRES_FOLDER + '/' + questionnaireId + '.json', 'r') as questionnaireFile:
         questionnaire = json.load(questionnaireFile)
+    oldName = questionnaire['name']
     questionnaire['name'] = newName
     with open(QUESTIONNAIRES_FOLDER + '/' + questionnaireId + '.json', 'w') as questionnaireFile:
         json.dump(questionnaire, questionnaireFile)
-    return jsonify({'success':True, "newName":newName})
+    return jsonify({'success':True, "newName":newName, "oldName":oldName})
 
 @app.route("/deleteQuestionnaire/<id>", methods=["POST"])
 def deleteQuestionnaire(id):

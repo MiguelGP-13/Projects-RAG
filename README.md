@@ -1,9 +1,101 @@
-# Projects-RAG
+# Docuchat
 Created a RAG using 3 free options:
 - Mistral (full online)
 - HuggingFace (LLM online, embeddings local)
 - Ollama (local)
 It uses a python backend with an html/js/css frontend to interact with it.
+
+# Quick start
+You will need Docker for all versions.
+If you don't have it, you can download it [here](https://docs.docker.com/get-started/introduction/get-docker-desktop/).
+## Docker (recommended):
+Open the compose folder inside the docker folder and follow the instructions
+
+## Local:
+- You need python installed. We recommend creating a venv for the app, so it doesn't have problems with interdependencies with other python you might have.
+- Make sure you have all the requirements needed.
+### Preparation
+#### 1. Download the repository
+Download it manually or using the terminal:
+```bash
+git clone https://github.com/MiguelGP-13/Projects-RAG.git
+```
+#### 2. Create .env file
+> [!IMPORTANT] 
+> The env file must be in the RAG folder, not elsewhere
+```bash
+DB_PASSWORD=<DB_PASSWORD IN .env>
+API_MISTRAL=<Mistral API>
+API_HUGGINGFACE=<HuggingFace API>
+```
+> [!NOTE] 
+> The only api key needed is the one you are going to use
+To get a Mistral API:
+  1. Create an account or login if you alredy have one at [Mistral](https://auth.mistral.ai/ui/login).
+  2. Go to the [api key](https://console.mistral.ai/api-keys) section and click on `Create a new Key`.
+  3. Copy the key and put it in the .env file.
+
+#### 3. Confirm settings.env content
+Make sure it has this information if you choose `Mistral` or `HuggingFace` as MODE.
+```bash
+MODE=Mistral
+CHUNK_SIZE=512
+CONTEXT_SIZE=3
+DOCUMENT_FOLDER=Backend/documents
+QUESTIONNAIRES_FOLDER=Backend/questionnaires
+CHATS_FOLDER=Backend/chats
+```
+If you want to use local LLM:
+```bash
+MODE=Local
+MODEL=<Model you want to use (for example: mistral)> 
+EMBEDDINGS=<Model you want to use (for example: jina/jina-embeddings-v2-base-en)> 
+DIMENSION=<Dimension of embeddings generated (768 for jina embeddings)>
+CHUNK_SIZE=512
+CONTEXT_SIZE=3
+DOCUMENT_FOLDER=Backend/documents
+QUESTIONNAIRES_FOLDER=Backend/questionnaires
+CHATS_FOLDER=Backend/chats
+```
+> [!IMPORTANT]
+> Create the folders you are indicating in settings.env (documents, questionnaires and chats)
+
+#### 4. Create Redis database in docker
+```bash
+docker run -d --name redis-stack -p 6379:6379 -p 8361:8001 -e REDIS_ARGS="--requirepass <DB_PASSWORD IN .env>" redis/redis-stack:latest
+```
+
+> [!TIP]
+> If the command is not working, make sure Docker is alredy running
+### Steps
+#### 1. Start Redis in docker
+Start the docker engine and the redis db
+```bash
+docker desktop start
+docker start redis-stack
+```
+
+#### 2. Run main\.py file
+Start the backend API
+```bash
+cd Backend
+python main.py
+```
+
+#### 3. Open the main\.html file
+Open the web so you can use the app
+Linux:
+```bash
+cd ../Frontend
+xdg-open file.htm
+```
+Windows:
+```bash
+cd ../Frontend
+start file.htm
+```
+> [!NOTE]  
+> You can also open it clicking on the file
 
 ## Frontend:
 main.html: Chat where you ask questions about the documents uploaded.
@@ -128,16 +220,14 @@ files.html: Page to upload files for the RAG to use.
 ```json
 {"success": true, "questionnaireId": 1234}
 ```
-### 11. GET /questionnaires/<id>
+
+### 11. POST /deleteQuestionnaire/<id>  
 *Answer*:  
 ```json
-{"success": true, 
-"questions": [{"question":"",
-                "options": ["..."],
-                "correctOption":1}]
-}
+{"success": true, "deleted": "id.json"}
+```
 
-### 11. GET /questionnaires
+### 12. GET /questionnaires/<id>
 *Answer*:  
 ```json
 {"success": true, 
@@ -147,9 +237,31 @@ files.html: Page to upload files for the RAG to use.
 }
 ```
 
-### 10. GET /  
+### 13. GET /questionnaires
+*Answer*:  
+```json
+{"success": true, 
+"questions": [{"question":"",
+                "options": ["..."],
+                "correctOption":1}]
+}
+```
+
+### 14. POST /renameQuestionnaire/<id>
+*Answer*:  
+```json
+{"success": true, "newName": "newName", "oldName":"oldName"}
+```
+
+### 15. GET /  
 *Answer*: Serves `main.html` from frontend
 
+### 16. /healt
+*Answer*: 
+```json
+{"success": true}
+{"success": false, "description":"What's not up running"}
+```
 
 ## Error codes:
 
@@ -168,24 +280,4 @@ files.html: Page to upload files for the RAG to use.
 | 109  | Conversation name can't be empty |
 | 110  | Incorrect query mode |
 | 111  | The questionnaire you are trying to find does not exist |
-
-##  Launch Redis DB:
-docker run -d --name redis-stack -p 6379:6379 -p 8361:8001 -e REDIS_ARGS="--requirepass `password`" redis/redis-stack:latest
-
-
-
-## Errors
-
-RAG doesn't sends the answer => When reloaded, it appears (loading the chat has the answer) # error with chat selection
-When uploading various files, only one appears in the page, unless you refresh
-
-  When selecting one choice, put ramdom number instead of 0
-
-  Make questionnaires persistent (with their name) and maybe hide correct option until submit (via API)
-
-  Add tick/cross to questions
-
-When chat answers, it deletes the question and appears strangely => Only sometimes?
-
-Fix checking if chat exists when selecting chat => For development mainly
 

@@ -8,12 +8,12 @@ services:
     environment:
       - REDIS_ARGS= --requirepass ${DB_PASSWORD}
     volumes:
-      - ./data:/data
+      - redis-data:/data
     networks:
       - RAG_network
 
   python_api:
-    image: miguelgp13/rag-backend:1.0
+    image: miguelgp13/rag-backend:2.0.0
     container_name: backend
     depends_on:
       - redis
@@ -21,12 +21,14 @@ services:
       - "13001:13001"
     env_file:
       - settings.env
-      - ../../secrets.env
+      - .env
+    volumes:
+      - backend-data:/app/Backend/files
     networks:
       - RAG_network
     
   frontend:
-    image: miguelgp13/rag-frontend:1.0
+    image: miguelgp13/rag-frontend:2.0.0
     container_name: frontend
     ports:
       - "1380:80"
@@ -36,7 +38,7 @@ services:
 networks:
   RAG_network:
 
-# volumes:
-#   nginx_volume:
+volumes:
+  redis-data:
 
-#   python_volume:
+  backend-data:

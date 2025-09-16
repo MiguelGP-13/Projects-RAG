@@ -4,7 +4,7 @@ FROM nginx:alpine
 RUN rm -rf /usr/share/nginx/html/*
 
 # Copy the frontend
-COPY ../../Frontend /usr/share/nginx/html/
+COPY Frontend /usr/share/nginx/html/
 
 # Use the NGINX configuration
-# COPY docker/compose/nginx.conf /etc/nginx/conf.d/default.conf
+COPY docker/Build/nginx.conf /etc/nginx/conf.d/default.conf

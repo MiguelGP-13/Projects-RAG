@@ -3,10 +3,6 @@ function cleanName (text) { // Encode spaces as %20
     text = text.replace(/\./g, '%2E');
     return text.replace(/ /g, '%20');
 }
-// function returnSpaces (text) { // Unencode spaces previously converted to %20
-//     return text.replace(/%20/g, ' ');
-// }
-
 
 function popupNewChat (send = false) {
     // Include the HTML to ask for the name of the new chat
@@ -38,6 +34,8 @@ function hidePopup () {
 
 
 function createSelector(realName, id, mode) {
+    // Create the selector button for chats and questionnaires in the navbar
+    // Create the button
     const button = document.createElement("button");
     console.log("Mode:" + mode);
     button.classList.add(mode);
@@ -46,6 +44,7 @@ function createSelector(realName, id, mode) {
         <p>${realName}</p>
         <img src="images/closedBin.png" class="delete-${mode}" ${mode}="${id}">`;
     
+    // Create the delete button
     const deleteButton = button.querySelector(`.delete-${mode}`);
     deleteButton.addEventListener('mouseover', () => {
         deleteButton.src = 'images/openBin.png';
@@ -53,10 +52,11 @@ function createSelector(realName, id, mode) {
     deleteButton.addEventListener('mouseout', () => {
         deleteButton.src = 'images/closedBin.png';
     });
+    console.log("Button " + button.id + " was registered");
+    // Add listeners to delete and the button itself depending on the type
     if (mode === "chat") {
     openChats.insertBefore(button, openChats.firstChild);
     requestAnimationFrame(() => {
-        console.log("Button " + button.id + " was registered");
         button.addEventListener('click', () => {
             selectChat(id);
         });
@@ -66,7 +66,6 @@ function createSelector(realName, id, mode) {
     else if (mode === "questionnaire") {
         openQuestionnaires.insertBefore(button, openQuestionnaires.firstChild);
         requestAnimationFrame(() => {
-            console.log("Button " + button.id + " was registered");
             button.addEventListener('click', () => {
                 selectQuestionnaire(id);
             });
@@ -80,6 +79,7 @@ function createSelector(realName, id, mode) {
 }
 
 function createChat (event) {
+    // Sends request to API to create a new chat
     console.log('send new chat clicked: '+ event.target)
     const realName = newChatInput.value.trim();
     const cleanedName = cleanName(realName); // Not to have errors with the URL
@@ -145,7 +145,7 @@ function deleteChat (event) { // We delete the chat with the same id as the butt
         // Alert of errors
         else {
             if (data.error_code === 105) {
-                console.log("Chat doesn't exist alredy")
+                console.log("Chat doesn't exist")
                 chatSelected = undefined; // Select no chat
                 localStorage.removeItem("chatSelected");
                 loadPage();
@@ -156,8 +156,8 @@ function deleteChat (event) { // We delete the chat with the same id as the butt
 }
 
 
-function deleteQuestionnaire (event) { // We delete the chat with the same id as the button pressed
-    // Send the backend the order to delete that chat
+function deleteQuestionnaire (event) {
+    // Send the backend the order to delete that questionnaire
     fetch('http://' + apiHost + ':13001/deleteQuestionnaire/' + event.currentTarget.getAttribute('questionnaire'), {
         method: 'POST',
         headers: {
@@ -168,15 +168,13 @@ function deleteQuestionnaire (event) { // We delete the chat with the same id as
     .then(response => response.json()).catch(()=>alert('Backend api not ready,deleteQuestionnaire'))
     .then(data => {
         if (data.success) {
-            chatSelected = undefined; // Select no chat
-            console.log('deleting questionnaire')
             loadPage();
             console.log('page loaded')
         }
         // Alert of errors
         else {
             if (data.error_code === 105) {
-                console.log("Questionnaire doesn't exist alredy")
+                console.log("Questionnaire doesn't exist")
                 loadPage();
             }
             else {alert(`Unexpected error ${data.error_code}: ${data.description}`)}
@@ -264,12 +262,13 @@ function loadPage () {
             createSelector(element.realName, element.id, "chat")
         })
         console.log(chatSelected);
+        // Select last chat selected (if not a new one)
         if (chatSelected) {
             // Should make sure it exists
             selectChat(chatSelected)
         }
         else {
-            console.log('Borrado');
+            console.log('Deleted');
             // We open a new chat if no chat is selected 
             chatSpace.innerHTML =  `
             <div class="text-container-ai">
@@ -306,6 +305,7 @@ function loadPage () {
 }
 
 function loadConversation (id) {
+    // Loads the selected conversation from the API
     fetch('http://' + apiHost + ':13001/chats/' + id, {
         method: 'GET'})
     .then(response => response.json()).catch(() => alert('Backend api not ready, loadConversation'))
@@ -374,6 +374,7 @@ function loadConversation (id) {
 }
 
 function selectChat (id) {
+    // Selects the chat in the navbar and loads the conversation
     console.log('selectChat clicked on button: ' + id)
     const oldSelected = document.querySelector("#" + chatSelected + ".chat");
     if (oldSelected) {
@@ -389,11 +390,13 @@ function selectChat (id) {
 }
 
 function selectQuestionnaire (id) {
+    // Opens the quiz
     const win = window.open('questionnaire.html?id='+id);
     selectMode('RAG');
 }
 
 function selectMode (newMode) {
+    // Selects the app mode
     questionnaire.style.zIndex = "-1";
     console.log("New mode selected: " + newMode);
     const oldSelected = document.querySelector(".navbar #" + mode + ".title-left");
@@ -411,6 +414,7 @@ function selectMode (newMode) {
 
 
 function selectDifficulty (newDifficulty) {
+    // Sets the difficulty level of the quiz
     console.log("New difficulty selected: " + newDifficulty);
     const oldSelected = document.querySelector(".js-questionnaire #" + difficulty + ".js-level");
     if (oldSelected) {
@@ -426,6 +430,7 @@ function selectDifficulty (newDifficulty) {
 }
 
 function popupNewQuestionnaire () {
+    // Opens the configuration page for the questionnaire
     // selectMode
     selectMode('questionnaire');
     selectDifficulty('medium');
@@ -460,6 +465,7 @@ function popupNewQuestionnaire () {
 }
 
 function createQuestionnaire () {
+    // Creates the questionnaire and opens its
     const checkboxes = document.querySelectorAll('.js-questionnaire input[type="checkbox"]');
     const files = [];
     checkboxes.forEach(cb => {
@@ -472,7 +478,7 @@ function createQuestionnaire () {
         alert('You must select at least one document to be quizzed about!')
     }
     else  {
-        // send files to backend, create questionnaire! => New page
+        // send selected files to backend and asks to create the questionnaire => New page
         fetch('http://' + apiHost + ':13001/createQuestionnaire' , {
             method: 'POST',
             headers: {
@@ -496,6 +502,7 @@ function createQuestionnaire () {
 }
 
 function openFile(event) {
+    // Opens the pdf in a new tab
     const filename = event.target.getAttribute('pdf');
     console.log('Se mostrará ' + filename);
   

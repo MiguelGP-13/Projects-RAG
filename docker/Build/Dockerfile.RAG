@@ -8,16 +8,16 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Python packages
-COPY docker/requirements.txt .
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the app
 COPY Backend/RAG.py /app/Backend/RAG.py
 COPY Frontend /app/Frontend
-COPY docker/compose/main_compose.py /app/Backend/main.py
+COPY Backend/main.py /app/Backend/main.py
 
 EXPOSE 13001
 
 WORKDIR /app/Backend
-RUN mkdir documents chats
+RUN mkdir files
 CMD ["python", "-u", "main.py"]

@@ -9,10 +9,6 @@ import markdown
 import os
 from redis.commands.search.query import Query
 
-
-
-CHATS_FOLDER = os.getenv('CHATS_FOLDER')
-
 def saveChat(prompt, answer, actual_chat, mode, references=None):
     try:
         with open(actual_chat, 'r') as f:
@@ -32,9 +28,11 @@ def saveChat(prompt, answer, actual_chat, mode, references=None):
 
 def to_blob(embedding: np.array) -> bytes:
     """
+    embedding: np.array = embedding
+
+    return: bytes = blob
+
     Converts embedding to blob.
-    :param embedding: embedding
-    :return: blob
     """
     return embedding.astype(np.float32).tobytes()
 
@@ -139,6 +137,13 @@ def create_embeddings_pdf(pdf_path: str, chunk_size: int, embedder, redis, mode)
     return chunks
 
 def cleanReferences(references):
+    """
+    references: list = List with used references
+
+    return: str = Text to show in frontend with the references used
+
+    Cleans how references are shown, to make it more concise and more understandable
+    """
     cleanReferences = {}
     for reference in references:
         if "documentos:" in reference:
@@ -160,7 +165,7 @@ def query(prompt, model, embedder, redis, search_index, N, mode, actual_chat):
     redis: Redis = Connection to the Redis database
     search_index: str = Name of the index created in redis
     N: int = Number of similar chunks
-    mode: str = Local or Mistral
+    mode: str = Local, Mistral of HuggingFace
     actual_chat: chat where conversation is saved
 
     Embedds the query, searchs for the most similar chunks and LLM writes the answer
@@ -233,7 +238,7 @@ def LLMChat(prompt, model, mode, actual_chat):
     '''
     prompt: str = Question about the document database
     model: str = Model to be used for encoding
-    mode: str = Local or Mistral
+    mode: str = Local,  Mistral of HuggingFace
     actual_chat: chat where conversation is saved
 
     Sends all the conversation to the LLM
@@ -264,6 +269,13 @@ def LLMChat(prompt, model, mode, actual_chat):
     return answer, actual_chat
 
 def checkQuestions(answer):
+    """
+    answer: str = The answer given by the LLM. It should be a list of questions.
+
+    return: list = The parsed json with the questions.
+
+    Cleans the LLM answer to avoid errors.
+    """
     if answer[0] != '[' or answer[-1] != ']': # We make sure it has no initial or ending extra text
         try:
             answer = '[' + re.search(r"\[(.*)\]", answer, re.DOTALL).group() + ']'
@@ -278,6 +290,15 @@ def checkQuestions(answer):
     return questions
 
 def createQuestionnaireHTML(pdfs, level, nQuestions, model, redis, mode, maxChunks):
+    """
+    pdfs: list = Names of pdfs to use for the questionnaire
+    level: int = Level of the questionnaire from 1 to 4
+    nQuestions: int = Number of questions to return
+    model: str = Model to be used for encoding
+    redis: Redis = Connection to the Redis database
+    mode: str = Local, Mistral of HuggingFace
+    maxChunks: int = Max of chunks to use. To avoid consuming too much credits
+    """
     keys = []
     for file in pdfs:
         file_name = file.split('/')[-1].split('.')[0]
