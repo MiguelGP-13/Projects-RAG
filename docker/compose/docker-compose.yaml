@@ -13,7 +13,7 @@ services:
       - RAG_network
 
   python_api:
-    image: miguelgp13/rag-backend:2.0.0
+    image: miguelgp13/rag-backend:2.0.0-lite
     container_name: backend
     depends_on:
       - redis

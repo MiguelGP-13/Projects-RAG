@@ -6,5 +6,5 @@ pypdf==4.3.1
 numpy==2.2.5
 mistralai==1.9.1
 markdown==3.7
-huggingface_hub==0.33.4
-sentence-transformers==3.3.1
+# huggingface_hub==0.33.4
+# sentence-transformers==3.3.1
