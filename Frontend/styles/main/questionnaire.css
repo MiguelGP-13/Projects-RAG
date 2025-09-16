@@ -137,3 +137,22 @@
     border-top-right-radius: 15px;
     border-bottom-right-radius: 15px;
 }
+
+/* Create questionnaire */
+
+.create-questionnaire {
+    background-color: #ffeccc;
+    color:  #895200;
+    border-radius: 10px;
+    border-width: 0px;
+    width: 200px;
+    height: 40px;
+    cursor: pointer;
+    margin-top: 50px;
+     margin-left: calc(50% - 110px);
+}
+
+.create-questionnaire:hover {
+    color: #ffeccc;
+    background-color:  #895200;
+}
